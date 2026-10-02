@@ -1,0 +1,18 @@
+{
+  "name": "@nirikshan/validation",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "lint": "echo 'No lint for validation'"
+  },
+  "dependencies": {
+    "@nirikshan/shared-types": "*",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

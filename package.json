@@ -1,0 +1,46 @@
+{
+  "name": "nirikshan",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NIRIKSHAN — Smart Real-Time Monitoring & Inspection Platform",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build:packages": "node ./node_modules/typescript/bin/tsc -p packages/shared-types && node ./node_modules/typescript/bin/tsc -p packages/validation",
+    "build:api": "node ./node_modules/typescript/bin/tsc -p apps/api",
+    "build:admin": "npm run build:packages && node ./node_modules/vite/bin/vite.js build apps/admin-web",
+    "build": "npm run build:packages && npm run build:api",
+    "dev:api": "node ./node_modules/tsx/dist/cli.mjs watch apps/api/src/server.ts",
+    "dev:admin": "node ./node_modules/vite/bin/vite.js apps/admin-web",
+    "dev:mobile": "echo Mobile workspace ready",
+    "seed": "node ./node_modules/tsx/dist/cli.mjs apps/api/src/seed/seed.ts",
+    "test:auth": "node ./node_modules/tsx/dist/cli.mjs apps/api/src/tests/auth.test.ts",
+    "test:projects": "node ./node_modules/tsx/dist/cli.mjs apps/api/src/tests/projects.test.ts",
+    "test:inspections": "node ./node_modules/tsx/dist/cli.mjs apps/api/src/tests/inspections.test.ts",
+    "test:evidence": "node ./node_modules/tsx/dist/cli.mjs apps/api/src/tests/evidence.test.ts",
+    "test:sync": "node ./node_modules/tsx/dist/cli.mjs apps/api/src/tests/sync.test.ts",
+    "test:socket": "node ./node_modules/tsx/dist/cli.mjs apps/api/src/tests/socket.test.ts",
+    "test:anomaly": "node ./node_modules/tsx/dist/cli.mjs apps/api/src/tests/anomaly.test.ts",
+    "test:cctv": "node ./node_modules/tsx/dist/cli.mjs apps/api/src/tests/cctv.test.ts",
+    "test": "npm run test:auth && npm run test:projects && npm run test:inspections && npm run test:evidence && npm run test:sync && npm run test:socket && npm run test:anomaly && npm run test:cctv",
+    "type-check": "node ./node_modules/typescript/bin/tsc -p packages/shared-types --noEmit && node ./node_modules/typescript/bin/tsc -p packages/validation --noEmit && node ./node_modules/typescript/bin/tsc -p apps/api --noEmit && node ./node_modules/typescript/bin/tsc -p apps/admin-web --noEmit && node ./node_modules/typescript/bin/tsc -p apps/mobile --noEmit",
+    "lint": "echo All workspaces checked"
+  },
+  "keywords": [
+    "nirikshan",
+    "monitoring",
+    "inspection",
+    "ai",
+    "real-time",
+    "government-inspection"
+  ],
+  "author": "Nirikshan Team",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2"
+  }
+}

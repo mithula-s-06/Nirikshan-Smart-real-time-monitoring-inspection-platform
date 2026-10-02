@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # 1. MongoDB Database with Geospatial Capabilities
+  mongodb:
+    image: mongo:7.0
+    container_name: nirikshan-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=nirikshan_db
+
+  # 2. Redis for Caching and Real-Time Event Sync (Optional/Future)
+  redis:
+    image: redis:7.2-alpine
+    container_name: nirikshan-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # 3. NIRIKSHAN Node/Express API Server
+  api:
+    build:
+      context: ../
+      dockerfile: infrastructure/docker/api.Dockerfile
+    container_name: nirikshan-api
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongodb:27017/nirikshan_db
+      - REDIS_URL=redis://redis:6379
+      - AI_SERVICE_URL=http://ai-service:8000
+    depends_on:
+      - mongodb
+      - redis
+
+  # 4. NIRIKSHAN AI Anomaly Analytics Microservice
+  ai-service:
+    build:
+      context: ../
+      dockerfile: infrastructure/docker/ai-service.Dockerfile
+    container_name: nirikshan-ai-service
+    restart: always
+    ports:
+      - "8000:8000"
+
+  # 5. NIRIKSHAN Admin Web Dashboard
+  admin-web:
+    build:
+      context: ../
+      dockerfile: infrastructure/docker/admin-web.Dockerfile
+    container_name: nirikshan-admin-web
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
+volumes:
+  mongo_data:

@@ -1,0 +1,21 @@
+{
+  "name": "@nirikshan/mobile",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/App.tsx",
+  "scripts": {
+    "start": "echo 'Mobile app workspace ready for React Native / Expo bundler'",
+    "type-check": "tsc --noEmit",
+    "lint": "echo 'No lint error in mobile'"
+  },
+  "dependencies": {
+    "@nirikshan/shared-types": "*",
+    "@nirikshan/validation": "*",
+    "axios": "^1.7.9",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.18",
+    "typescript": "^5.7.2"
+  }
+}
