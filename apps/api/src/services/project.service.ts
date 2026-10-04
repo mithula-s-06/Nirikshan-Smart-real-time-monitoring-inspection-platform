@@ -60,12 +60,12 @@ export class ProjectService {
     return project.toJSON();
   }
 
-  public static async getProjects(query: GetProjectsQuery) {
+  public static async getProjects(query: GetProjectsQuery, scopeFilter: Record<string, any> = {}) {
     const page = Math.max(1, Number(query.page) || 1);
     const limit = Math.min(100, Math.max(1, Number(query.limit) || 10));
     const skip = (page - 1) * limit;
 
-    const filter: Record<string, any> = {};
+    const filter: Record<string, any> = { ...scopeFilter };
 
     if (query.status) {
       filter.status = query.status;

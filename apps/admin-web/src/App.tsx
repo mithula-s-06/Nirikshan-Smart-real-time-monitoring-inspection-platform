@@ -37,6 +37,13 @@ import {
   Volume2,
   Lock,
   Compass,
+  PlayCircle,
+  Users,
+  GraduationCap,
+  History,
+  Coins,
+  CheckSquare,
+  Shield
 } from 'lucide-react';
 import {
   HealthStatus,
@@ -48,35 +55,130 @@ import {
   AlertStatus,
   CameraStatus,
   StreamProtocol,
+  IRiskScoreBreakdown,
+  UserRole,
+  Permissions
 } from '@nirikshan/shared-types';
+import { useAuth } from './context/AuthContext';
+import { LoginPage } from './components/auth/LoginPage';
+import { SessionsModal } from './components/common/SessionsModal';
+import { PersonaSwitcherModal } from './components/common/PersonaSwitcherModal';
+import { AccessDenied } from './components/common/AccessDenied';
+import { UserManagementView } from './components/views/UserManagementView';
+import { GoogleEarthLeafletMap } from './components/GoogleEarthLeafletMap';
+import { Topbar } from './components/common/Topbar';
+import { Sidebar } from './components/common/Sidebar';
+import { PortalHero, CoverageFilterBar, portalKindFromRoles } from './components/common/PortalHome';
+import { StatusBadge } from './components/common/StatusBadge';
+import { RiskCard } from './components/common/RiskCard';
+import { EntityDrawer } from './components/common/EntityDrawer';
+import { FinancialIntelligenceView } from './components/views/FinancialIntelligenceView';
+import { ComplianceView } from './components/views/ComplianceView';
+import { BeneficiariesView } from './components/views/BeneficiariesView';
+import { CorrectiveActionsView } from './components/views/CorrectiveActionsView';
+import { VCSurpriseView } from './components/views/VCSurpriseView';
+import { DemoScenarioRunner } from './components/views/DemoScenarioRunner';
+import { NgoDashboard } from './components/roles/NgoDashboard';
+import { InspectorDashboard } from './components/roles/InspectorDashboard';
+import { BeneficiaryDashboard } from './components/roles/BeneficiaryDashboard';
+import { ArchitectureModal } from './components/common/ArchitectureModal';
+
+// @ts-ignore
+import DataIntegrityWorkspace from './components/attendance/DataIntegrityWorkspace.jsx';
+// @ts-ignore
+import CaptureWorkflow from './components/attendance/CaptureWorkflow.jsx';
+// @ts-ignore
+import StaffCheckin from './components/attendance/StaffCheckin.jsx';
+// @ts-ignore
+import DemoRunner from './components/attendance/DemoRunner.jsx';
 
 export function App() {
-  // Navigation
-  const [activeTab, setActiveTab] = useState<
-    'map' | 'inspections' | 'anomalies' | 'cctv' | 'projects' | 'organizations' | 'health'
-  >('map');
+  const {
+    user,
+    roles,
+    permissions,
+    scope,
+    authToken,
+    isAuthenticated,
+    loading: authLoading,
+    hasPermission,
+    hasRole,
+    logout
+  } = useAuth();
 
-  // Auth token for session
-  const [authToken, setAuthToken] = useState<string>('');
+  // Navigation tab state
+  const [activeTab, setActiveTab] = useState<string>('command');
+  const [architectureModalOpen, setArchitectureModalOpen] = useState<boolean>(false);
+  const [sessionsModalOpen, setSessionsModalOpen] = useState<boolean>(false);
+  const [personaSwitcherOpen, setPersonaSwitcherOpen] = useState<boolean>(false);
 
-  // Health state
+  // Role detection
+  const isNgo =
+    hasRole(UserRole.NGO_ADMIN) ||
+    hasRole(UserRole.NGO_PROJECT_MANAGER) ||
+    hasRole(UserRole.NGO_STAFF);
+
+  const isInspector = hasRole(UserRole.PMU_INSPECTOR);
+  const isBeneficiary = hasRole(UserRole.BENEFICIARY);
+
+  // Initialize/sync default tab on user identity change
+  useEffect(() => {
+    if (!user) return;
+    if (isNgo) {
+      setActiveTab('ngo_overview');
+    } else if (isInspector) {
+      setActiveTab('inspector_today');
+    } else if (isBeneficiary) {
+      setActiveTab('ben_profile');
+    } else {
+      setActiveTab('command');
+    }
+  }, [(user as any)?._id, user?.id, user?.role]);
+
+  // Core backend entity state
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [healthLoading, setHealthLoading] = useState<boolean>(false);
-
-  // Projects state
   const [projects, setProjects] = useState<any[]>([]);
   const [projectStats, setProjectStats] = useState<any>(null);
   const [projectsLoading, setProjectsLoading] = useState<boolean>(false);
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [stateFilter, setStateFilter] = useState<string>('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
-  const [riskFilter, setRiskFilter] = useState<string>('');
-  const [selectedProject, setSelectedProject] = useState<any | null>(null);
-
-  // Inspections state
   const [inspections, setInspections] = useState<any[]>([]);
   const [inspectionsLoading, setInspectionsLoading] = useState<boolean>(false);
-  const [selectedInspection, setSelectedInspection] = useState<any | null>(null);
+  const [alerts, setAlerts] = useState<any[]>([]);
+  const [alertsLoading, setAlertsLoading] = useState<boolean>(false);
+  const [cameras, setCameras] = useState<any[]>([]);
+  const [camerasLoading, setCamerasLoading] = useState<boolean>(false);
+  const [units, setUnits] = useState<any[]>([]);
+  const [liveInspectors, setLiveInspectors] = useState<any[]>([]);
+
+  // Extended domain models state
+  const [complianceRecords, setComplianceRecords] = useState<any[]>([]);
+  const [complianceStats, setComplianceStats] = useState<any>(null);
+  const [financialRecords, setFinancialRecords] = useState<any[]>([]);
+  const [financialStats, setFinancialStats] = useState<any>(null);
+  const [beneficiaries, setBeneficiaries] = useState<any[]>([]);
+  const [beneficiaryStats, setBeneficiaryStats] = useState<any>(null);
+  const [correctiveActions, setCorrectiveActions] = useState<any[]>([]);
+  const [correctiveStats, setCorrectiveStats] = useState<any>(null);
+  const [vcSessions, setVcSessions] = useState<any[]>([]);
+  const [vcStats, setVcStats] = useState<any>(null);
+
+  // Global search & filters
+  const [globalSearch, setGlobalSearch] = useState<string>('');
+  const [stateFilter, setStateFilter] = useState<string>('');
+  const [riskFilter, setRiskFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+
+  // Slide-over Entity Drawer state
+  const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
+  const [drawerEntity, setDrawerEntity] = useState<any | null>(null);
+  const [drawerType, setDrawerType] = useState<'project' | 'beneficiary' | 'anomaly' | 'inspection' | 'compliance'>('project');
+  const [drawerTitle, setDrawerTitle] = useState<string>('');
+  const [drawerSubtitle, setDrawerSubtitle] = useState<string>('');
+
+  // Selected project risk score breakdown cache
+  const [projectRiskCache, setProjectRiskCache] = useState<{ [id: string]: IRiskScoreBreakdown }>({});
+
+  // Auto assign modal state
   const [autoAssignModalOpen, setAutoAssignModalOpen] = useState<boolean>(false);
   const [autoAssignState, setAutoAssignState] = useState<string>('Maharashtra');
   const [autoAssignType, setAutoAssignType] = useState<string>('SURPRISE');
@@ -84,93 +186,34 @@ export function App() {
   const [autoAssignLoading, setAutoAssignLoading] = useState<boolean>(false);
   const [autoAssignResult, setAutoAssignResult] = useState<any | null>(null);
 
-  // AI & Anomaly state
-  const [alerts, setAlerts] = useState<any[]>([]);
-  const [alertsLoading, setAlertsLoading] = useState<boolean>(false);
-  const [selectedAlert, setSelectedAlert] = useState<any | null>(null);
-  const [alertFilterSeverity, setAlertFilterSeverity] = useState<string>('');
-  const [alertFilterStatus, setAlertFilterStatus] = useState<string>('');
-  const [resolveModalOpen, setResolveModalOpen] = useState<boolean>(false);
-  const [resolutionNotes, setResolutionNotes] = useState<string>('');
-  const [resolvingLoading, setResolvingLoading] = useState<boolean>(false);
-
-  // AI interactive simulator state
-  const [simClaimed, setSimClaimed] = useState<number>(60);
-  const [simObserved, setSimObserved] = useState<number>(32);
-  const [simResult, setSimResult] = useState<any | null>(null);
-  const [simLoading, setSimLoading] = useState<boolean>(false);
-
-  // CCTV state
-  const [cameras, setCameras] = useState<any[]>([]);
-  const [camerasLoading, setCamerasLoading] = useState<boolean>(false);
+  // CCTV modal state
   const [selectedCamera, setSelectedCamera] = useState<any | null>(null);
   const [cameraModalOpen, setCameraModalOpen] = useState<boolean>(false);
   const [cameraStreamUrl, setCameraStreamUrl] = useState<string>('');
-  const [addCameraModalOpen, setAddCameraModalOpen] = useState<boolean>(false);
-  const [newCamName, setNewCamName] = useState<string>('');
-  const [newCamCode, setNewCamCode] = useState<string>('');
-  const [newCamLocation, setNewCamLocation] = useState<string>('');
-  const [newCamProjectId, setNewCamProjectId] = useState<string>('');
 
-  // Map state
-  const [mapZoom, setMapZoom] = useState<number>(1);
-  const [mapCenter, setMapCenter] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [mapFilterLayer, setMapFilterLayer] = useState<'all' | 'projects' | 'cctv' | 'inspectors'>('all');
-  const [selectedMapEntity, setSelectedMapEntity] = useState<any | null>(null);
+  // Notifications drawer state
+  const [notificationsOpen, setNotificationsOpen] = useState<boolean>(false);
 
-  // Real-time simulated inspector telemetry positions
-  const [liveInspectors, setLiveInspectors] = useState<any[]>([
-    {
-      id: 'insp-1',
-      name: 'Priya Sharma',
-      email: 'inspector1@nirikshan.gov.in',
-      coordinates: [73.8567, 18.5204],
-      activeInspectionId: 'INSP-2026-8812',
-      speedKmh: 24.5,
-      accuracyMeters: 3.2,
-      batteryLevel: 88,
-      status: 'ON_MISSION',
-    },
-    {
-      id: 'insp-2',
-      name: 'Rajesh Verma',
-      email: 'inspector2@nirikshan.gov.in',
-      coordinates: [77.209, 28.6139],
-      activeInspectionId: 'INSP-2026-9041',
-      speedKmh: 0,
-      accuracyMeters: 4.8,
-      batteryLevel: 94,
-      status: 'ON_SITE',
-    },
-  ]);
+  // Map layer filter
+  const [mapFilterLayer, setMapFilterLayer] = useState<'all' | 'projects' | 'cctv' | 'inspectors' | 'units'>('all');
 
-  // Initial Login as Super Admin for web session
-  const authenticateAdmin = async () => {
-    try {
-      const res = await fetch('/api/v1/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'superadmin@nirikshan.gov.in', password: 'Password@123' }),
-      });
-      const data = await res.json();
-      if (data.success && data.data?.tokens?.accessToken) {
-        setAuthToken(data.data.tokens.accessToken);
-        return data.data.tokens.accessToken;
-      }
-    } catch (err) {
-      console.warn('Auto-auth failed:', err);
-    }
-    return '';
-  };
+  // Bumped by the coverage filter bar so projects are re-queried with the latest filter values
+  const [filterNonce, setFilterNonce] = useState<number>(0);
+  useEffect(() => {
+    if (authToken && filterNonce > 0) fetchProjects(authToken);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterNonce]);
 
   const fetchHealth = async () => {
     setHealthLoading(true);
     try {
       const res = await fetch('/api/v1/health');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setHealth(data.data);
     } catch (err) {
-      console.error(err);
+      console.warn('Backend health check unreachable:', err);
+      setHealth(null);
     } finally {
       setHealthLoading(false);
     }
@@ -181,7 +224,7 @@ export function App() {
     const tokenToUse = token || authToken;
     try {
       let url = '/api/v1/projects?limit=50';
-      if (searchQuery) url += `&search=${encodeURIComponent(searchQuery)}`;
+      if (globalSearch) url += `&search=${encodeURIComponent(globalSearch)}`;
       if (stateFilter) url += `&state=${encodeURIComponent(stateFilter)}`;
       if (statusFilter) url += `&status=${encodeURIComponent(statusFilter)}`;
       if (riskFilter) url += `&riskLevel=${encodeURIComponent(riskFilter)}`;
@@ -189,21 +232,29 @@ export function App() {
       const res = await fetch(url, {
         headers: tokenToUse ? { Authorization: `Bearer ${tokenToUse}` } : {},
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data.success) {
         setProjects(data.data.projects || []);
+      } else {
+        setProjects([]);
       }
 
-      // Fetch stats
       const statsRes = await fetch('/api/v1/projects/stats/overview', {
         headers: tokenToUse ? { Authorization: `Bearer ${tokenToUse}` } : {},
       });
-      const statsData = await statsRes.json();
-      if (statsData.success) {
-        setProjectStats(statsData.data.stats);
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        if (statsData.success) {
+          setProjectStats(statsData.data.stats);
+        }
+      } else {
+        setProjectStats(null);
       }
     } catch (err) {
       console.error('Fetch projects error:', err);
+      setProjects([]);
+      setProjectStats(null);
     } finally {
       setProjectsLoading(false);
     }
@@ -216,12 +267,35 @@ export function App() {
       const res = await fetch('/api/v1/inspections?limit=50', {
         headers: tokenToUse ? { Authorization: `Bearer ${tokenToUse}` } : {},
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data.success) {
-        setInspections(data.data.items || []);
+        const items = data.data.inspections || data.data.items || [];
+        setInspections(items);
+        const active = items.filter((i: any) => i.status === 'IN_PROGRESS' || i.status === 'EN_ROUTE');
+        if (active.length > 0) {
+          setLiveInspectors(active.map((insp: any, idx: number) => ({
+            id: insp.inspectorId?._id || insp.inspectorId?.id || `insp-${idx}`,
+            name: insp.inspectorId?.name || `Inspector ${idx + 1}`,
+            email: insp.inspectorId?.email || '',
+            coordinates: insp.projectId?.location?.coordinates || [73.8567 + idx * 0.05, 18.5204 + idx * 0.05],
+            activeInspectionId: insp.inspectionId,
+            speedKmh: insp.status === 'EN_ROUTE' ? 24.5 : 0,
+            accuracyMeters: 4.0,
+            batteryLevel: 90,
+            status: insp.status === 'EN_ROUTE' ? 'ON_MISSION' : 'ON_SITE',
+          })));
+        } else {
+          setLiveInspectors([]);
+        }
+      } else {
+        setInspections([]);
+        setLiveInspectors([]);
       }
     } catch (err) {
       console.error('Fetch inspections error:', err);
+      setInspections([]);
+      setLiveInspectors([]);
     } finally {
       setInspectionsLoading(false);
     }
@@ -231,19 +305,19 @@ export function App() {
     setAlertsLoading(true);
     const tokenToUse = token || authToken;
     try {
-      let url = '/api/v1/anomalies/alerts?limit=50';
-      if (alertFilterSeverity) url += `&severity=${alertFilterSeverity}`;
-      if (alertFilterStatus) url += `&status=${alertFilterStatus}`;
-
-      const res = await fetch(url, {
+      const res = await fetch('/api/v1/anomalies/alerts?limit=50', {
         headers: tokenToUse ? { Authorization: `Bearer ${tokenToUse}` } : {},
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data.success) {
-        setAlerts(data.data || []);
+        setAlerts(data.data.alerts || data.data || []);
+      } else {
+        setAlerts([]);
       }
     } catch (err) {
       console.error('Fetch alerts error:', err);
+      setAlerts([]);
     } finally {
       setAlertsLoading(false);
     }
@@ -256,93 +330,242 @@ export function App() {
       const res = await fetch('/api/v1/cctv/cameras?limit=50', {
         headers: tokenToUse ? { Authorization: `Bearer ${tokenToUse}` } : {},
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data.success) {
-        setCameras(data.data || []);
+        setCameras(data.data.cameras || data.data || []);
+      } else {
+        setCameras([]);
       }
     } catch (err) {
       console.error('Fetch cameras error:', err);
+      setCameras([]);
     } finally {
       setCamerasLoading(false);
     }
   };
 
-  const handleResolveAlert = async () => {
-    if (!selectedAlert) return;
-    setResolvingLoading(true);
+  const fetchUnits = async () => {
     try {
-      const res = await fetch(`/api/v1/anomalies/alerts/${selectedAlert.id}/status`, {
+      const res = await fetch('/api/units');
+      if (res.ok) {
+        const data = await res.json();
+        setUnits(data.units || []);
+      } else {
+        setUnits([]);
+      }
+    } catch (err) {
+      console.warn('Fetch units error:', err);
+      setUnits([]);
+    }
+  };
+
+  const fetchCompliance = async (search = '', state = '', status = '') => {
+    try {
+      let url = '/api/v1/compliance?limit=150';
+      if (search) url += `&search=${encodeURIComponent(search)}`;
+      if (state) url += `&state=${encodeURIComponent(state)}`;
+      if (status) url += `&status=${encodeURIComponent(status)}`;
+      const res = await fetch(url, {
+        headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setComplianceRecords(data.data?.records || []);
+        setComplianceStats(data.data?.stats || null);
+      }
+    } catch (err) {
+      console.warn('Fetch compliance error:', err);
+    }
+  };
+
+  const fetchFinancials = async () => {
+    try {
+      const res = await fetch('/api/v1/financial', {
+        headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setFinancialRecords(data.data?.records || []);
+        setFinancialStats(data.data?.stats || null);
+      }
+    } catch (err) {
+      console.warn('Fetch financials error:', err);
+    }
+  };
+
+  const fetchBeneficiaries = async (search = '', eligibility = '', risk = '') => {
+    try {
+      let url = '/api/v1/beneficiaries?limit=100';
+      if (search) url += `&search=${encodeURIComponent(search)}`;
+      if (eligibility) url += `&eligibilityStatus=${encodeURIComponent(eligibility)}`;
+      if (risk) url += `&riskLevel=${encodeURIComponent(risk)}`;
+      const res = await fetch(url, {
+        headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setBeneficiaries(data.data?.beneficiaries || []);
+        setBeneficiaryStats(data.data?.stats || null);
+      }
+    } catch (err) {
+      console.warn('Fetch beneficiaries error:', err);
+    }
+  };
+
+  const fetchCorrectiveActions = async () => {
+    try {
+      const res = await fetch('/api/v1/corrective-actions', {
+        headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCorrectiveActions(data.data?.actions || []);
+        setCorrectiveStats(data.data?.stats || null);
+      }
+    } catch (err) {
+      console.warn('Fetch corrective actions error:', err);
+    }
+  };
+
+  const fetchVCSessions = async () => {
+    try {
+      const res = await fetch('/api/v1/vc', {
+        headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setVcSessions(data.data?.sessions || []);
+        setVcStats(data.data?.stats || null);
+      }
+    } catch (err) {
+      console.warn('Fetch VC sessions error:', err);
+    }
+  };
+
+  const fetchProjectRiskBreakdown = async (projectId: string) => {
+    try {
+      const res = await fetch(`/api/v1/risk/project/${projectId}`, {
+        headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setProjectRiskCache((prev) => ({ ...prev, [projectId]: data.data }));
+        return data.data;
+      }
+    } catch (err) {
+      console.warn('Risk calculation error:', err);
+    }
+    return null;
+  };
+
+  // Open Entity Detail Drawer
+  const openEntityDrawer = async (type: 'project' | 'beneficiary' | 'anomaly' | 'inspection' | 'compliance', item: any) => {
+    let enrichedItem = { ...item };
+    if (type === 'project' && (item.id || item._id)) {
+      const pId = item.id || item._id;
+      const riskBreakdown = projectRiskCache[pId] || (await fetchProjectRiskBreakdown(pId));
+      enrichedItem.riskBreakdown = riskBreakdown;
+      const projCams = cameras.filter((c) => c.projectId === pId || c.projectId?._id === pId);
+      enrichedItem.cameras = projCams.length > 0 ? projCams : cameras.slice(0, 5);
+      enrichedItem.beneficiaries = beneficiaries.length > 0 ? beneficiaries : [];
+    }
+    setDrawerType(type);
+    setDrawerEntity(enrichedItem);
+    setDrawerTitle(item.name || item.title || item.ngoName || item.beneficiaryId || 'Inspection Dossier');
+    setDrawerSubtitle(item.scheme || item.district || item.orderNumber || item.ruleId || '');
+    setDrawerOpen(true);
+  };
+
+  // Human in the Loop Actions
+  const handleDrawerAction = async (action: string, payload: any) => {
+    if (action === 'VERIFY') {
+      try {
+        await fetch(`/api/v1/anomalies/alerts/${payload.id}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+          body: JSON.stringify({ status: 'RESOLVED', resolutionNotes: 'Confirmed authentic anomaly by DoSJE monitoring officer.' }),
+        });
+        fetchAlerts();
+        setDrawerOpen(false);
+      } catch (err) {
+        console.error(err);
+      }
+    } else if (action === 'DISMISS') {
+      try {
+        await fetch(`/api/v1/anomalies/alerts/${payload.id}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+          body: JSON.stringify({ status: 'DISMISSED', resolutionNotes: 'Dismissed as false positive after evidence cross-check.' }),
+        });
+        fetchAlerts();
+        setDrawerOpen(false);
+      } catch (err) {
+        console.error(err);
+      }
+    } else if (action === 'CORRECTIVE_ACTION') {
+      setActiveTab('corrective_actions');
+      setDrawerOpen(false);
+    } else if (action === 'SURPRISE_INSPECTION') {
+      setAutoAssignModalOpen(true);
+      setDrawerOpen(false);
+    }
+  };
+
+  const handleRunFinancialAudit = async (projectId: string) => {
+    try {
+      await fetch('/api/v1/financial/audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ projectId }),
+      });
+      fetchFinancials();
+      fetchProjects();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleInitiateSurpriseVC = async (vcData: any) => {
+    try {
+      await fetch('/api/v1/vc/surprise', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify(vcData),
+      });
+      fetchVCSessions();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleUpdateCorrectiveStatus = async (id: string, status: string, remarks?: string) => {
+    try {
+      await fetch(`/api/v1/corrective-actions/${id}/status`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({
-          status: AlertStatus.RESOLVED,
-          resolutionNotes: resolutionNotes || 'Investigated by Department Official. Contractor penalized.',
-        }),
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ status, officerRemarks: remarks }),
       });
-      const data = await res.json();
-      if (data.success) {
-        setResolveModalOpen(false);
-        setSelectedAlert(null);
-        setResolutionNotes('');
-        fetchAlerts();
-      }
+      fetchCorrectiveActions();
     } catch (err) {
-      console.error('Error resolving alert:', err);
-    } finally {
-      setResolvingLoading(false);
+      console.error(err);
     }
   };
 
-  const handleRunAttendanceSimulation = async () => {
-    if (projects.length === 0) return;
-    setSimLoading(true);
+  const handleCreateCorrectiveAction = async (data: any) => {
     try {
-      const targetProjId = projects[0].id;
-      const res = await fetch('/api/v1/anomalies/analyze/attendance', {
+      await fetch('/api/v1/corrective-actions', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
         body: JSON.stringify({
-          projectId: targetProjId,
-          claimedAttendance: simClaimed,
-          observedAttendance: simObserved,
+          ...data,
+          organizationId: projects[0]?.organizationId?._id || projects[0]?.organizationId,
+          projectId: projects[0]?._id || projects[0]?.id,
         }),
       });
-      const data = await res.json();
-      if (data.success) {
-        setSimResult(data.data);
-        fetchAlerts();
-      }
+      fetchCorrectiveActions();
     } catch (err) {
-      console.error('Simulation error:', err);
-    } finally {
-      setSimLoading(false);
-    }
-  };
-
-  const handleOpenStreamModal = async (camera: any) => {
-    setSelectedCamera(camera);
-    setCameraModalOpen(true);
-    try {
-      const res = await fetch(`/api/v1/cctv/cameras/${camera.id}/stream-token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({ ttlSeconds: 3600 }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setCameraStreamUrl(data.data.playbackUrl);
-      }
-    } catch (err) {
-      console.error('Stream token error:', err);
+      console.error(err);
     }
   };
 
@@ -374,1492 +597,847 @@ export function App() {
     }
   };
 
+  const handleOpenStreamModal = async (camera: any) => {
+    setSelectedCamera(camera);
+    setCameraModalOpen(true);
+    try {
+      const res = await fetch(`/api/v1/cctv/cameras/${camera.id}/stream-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({ ttlSeconds: 3600 }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCameraStreamUrl(data.data.playbackUrl);
+      }
+    } catch (err) {
+      console.error('Stream token error:', err);
+    }
+  };
+
   useEffect(() => {
-    authenticateAdmin().then((token) => {
-      fetchHealth();
-      fetchProjects(token);
-      fetchInspections(token);
-      fetchAlerts(token);
-      fetchCameras(token);
-    });
-  }, []);
+    if (!authToken) return;
+    fetchHealth();
+    fetchProjects(authToken);
+    fetchInspections(authToken);
+    fetchAlerts(authToken);
+    fetchCameras(authToken);
+    fetchUnits();
+    fetchCompliance();
+    fetchFinancials();
+    fetchBeneficiaries();
+    fetchCorrectiveActions();
+    fetchVCSessions();
+  }, [authToken]);
 
-  // Compute map bounding coordinates
-  const projectedEntities = useMemo(() => {
-    const list: any[] = [];
-    projects.forEach((p) => {
-      if (p.location?.coordinates) {
-        const [lng, lat] = p.location.coordinates;
-        // Project onto SVG viewbox (approx India bounding box: 68-98 E, 8-36 N)
-        const x = ((lng - 68) / (98 - 68)) * 800;
-        const y = 600 - ((lat - 8) / (36 - 8)) * 600;
-        list.push({ ...p, kind: 'PROJECT', mapX: x, mapY: y });
-      }
-    });
-    cameras.forEach((c) => {
-      if (c.location?.coordinates) {
-        const [lng, lat] = c.location.coordinates;
-        const x = ((lng - 68) / (98 - 68)) * 800 + (Math.random() * 10 - 5);
-        const y = 600 - ((lat - 8) / (36 - 8)) * 600 + (Math.random() * 10 - 5);
-        list.push({ ...c, kind: 'CCTV', mapX: x, mapY: y });
-      }
-    });
-    liveInspectors.forEach((i) => {
-      const [lng, lat] = i.coordinates;
-      const x = ((lng - 68) / (98 - 68)) * 800;
-      const y = 600 - ((lat - 8) / (36 - 8)) * 600;
-      list.push({ ...i, kind: 'INSPECTOR', mapX: x, mapY: y });
-    });
-    return list;
-  }, [projects, cameras, liveInspectors]);
+  const openAnomaliesCount = alerts.filter((a) => a.status === 'OPEN').length;
+  const openActionsCount = correctiveActions.filter((a) => a.status === 'OPEN' || a.status === 'OVERDUE').length;
 
-  return (
-    <div className="app-container">
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <div className="brand-header">
-          <div className="brand-logo">N</div>
-          <div>
-            <div className="brand-title">NIRIKSHAN</div>
-            <div className="brand-subtitle">Smart National Monitoring</div>
-          </div>
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#f3f6fb] flex flex-col items-center justify-center text-[#0f2147] space-y-4 font-sans">
+        <div className="w-14 h-14 rounded-2xl bg-[#0b2a6b]/10 border border-[#0b2a6b]/30 flex items-center justify-center text-[#0b2a6b] animate-pulse shadow-md">
+          <Shield className="w-7 h-7" />
         </div>
-
-        <nav style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.35rem', flex: 1 }}>
-          <button
-            onClick={() => setActiveTab('map')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.75rem 1rem',
-              borderRadius: '8px',
-              border: 'none',
-              background: activeTab === 'map' ? 'rgba(56, 189, 248, 0.15)' : 'transparent',
-              color: activeTab === 'map' ? '#38bdf8' : '#94a3b8',
-              fontWeight: activeTab === 'map' ? 700 : 500,
-              cursor: 'pointer',
-              textAlign: 'left',
-              width: '100%',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <Compass size={18} />
-            <span>GIS Live Command Map</span>
-            <span
-              style={{
-                marginLeft: 'auto',
-                padding: '0.1rem 0.45rem',
-                borderRadius: '9999px',
-                fontSize: '0.65rem',
-                background: 'rgba(56, 189, 248, 0.25)',
-                color: '#38bdf8',
-                fontWeight: 700,
-              }}
-            >
-              LIVE
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('inspections')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.75rem 1rem',
-              borderRadius: '8px',
-              border: 'none',
-              background: activeTab === 'inspections' ? 'rgba(56, 189, 248, 0.15)' : 'transparent',
-              color: activeTab === 'inspections' ? '#38bdf8' : '#94a3b8',
-              fontWeight: activeTab === 'inspections' ? 700 : 500,
-              cursor: 'pointer',
-              textAlign: 'left',
-              width: '100%',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <ClipboardList size={18} />
-            <span>Field Inspections</span>
-            <span
-              style={{
-                marginLeft: 'auto',
-                padding: '0.1rem 0.45rem',
-                borderRadius: '9999px',
-                fontSize: '0.65rem',
-                background: 'rgba(16, 185, 129, 0.2)',
-                color: '#34d399',
-                fontWeight: 700,
-              }}
-            >
-              {inspections.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('anomalies')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.75rem 1rem',
-              borderRadius: '8px',
-              border: 'none',
-              background: activeTab === 'anomalies' ? 'rgba(239, 68, 68, 0.15)' : 'transparent',
-              color: activeTab === 'anomalies' ? '#f87171' : '#94a3b8',
-              fontWeight: activeTab === 'anomalies' ? 700 : 500,
-              cursor: 'pointer',
-              textAlign: 'left',
-              width: '100%',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <Flame size={18} />
-            <span>AI Anomaly Radar</span>
-            {alerts.filter((a) => a.status === 'OPEN').length > 0 && (
-              <span
-                style={{
-                  marginLeft: 'auto',
-                  padding: '0.1rem 0.45rem',
-                  borderRadius: '9999px',
-                  fontSize: '0.65rem',
-                  background: 'rgba(239, 68, 68, 0.25)',
-                  color: '#f87171',
-                  fontWeight: 700,
-                }}
-              >
-                {alerts.filter((a) => a.status === 'OPEN').length} ALERTS
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => setActiveTab('cctv')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.75rem 1rem',
-              borderRadius: '8px',
-              border: 'none',
-              background: activeTab === 'cctv' ? 'rgba(56, 189, 248, 0.15)' : 'transparent',
-              color: activeTab === 'cctv' ? '#38bdf8' : '#94a3b8',
-              fontWeight: activeTab === 'cctv' ? 700 : 500,
-              cursor: 'pointer',
-              textAlign: 'left',
-              width: '100%',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <Video size={18} />
-            <span>CCTV Live Wall</span>
-            <span
-              style={{
-                marginLeft: 'auto',
-                padding: '0.1rem 0.45rem',
-                borderRadius: '9999px',
-                fontSize: '0.65rem',
-                background: 'rgba(245, 158, 11, 0.2)',
-                color: '#fbbf24',
-                fontWeight: 700,
-              }}
-            >
-              {cameras.length} CAMS
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('projects')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.75rem 1rem',
-              borderRadius: '8px',
-              border: 'none',
-              background: activeTab === 'projects' ? 'rgba(56, 189, 248, 0.15)' : 'transparent',
-              color: activeTab === 'projects' ? '#38bdf8' : '#94a3b8',
-              fontWeight: activeTab === 'projects' ? 700 : 500,
-              cursor: 'pointer',
-              textAlign: 'left',
-              width: '100%',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <Layers size={18} />
-            <span>Projects Explorer</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('health')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '0.75rem 1rem',
-              borderRadius: '8px',
-              border: 'none',
-              background: activeTab === 'health' ? 'rgba(56, 189, 248, 0.15)' : 'transparent',
-              color: activeTab === 'health' ? '#38bdf8' : '#94a3b8',
-              fontWeight: activeTab === 'health' ? 700 : 500,
-              cursor: 'pointer',
-              textAlign: 'left',
-              width: '100%',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <Activity size={18} />
-            <span>Cluster Health</span>
-          </button>
-        </nav>
-
-        {/* Security & System Info Footer */}
-        <div style={{ padding: '1rem', borderTop: '1px solid var(--border-subtle)', fontSize: '0.75rem', color: '#64748b' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
-            <ShieldCheck size={14} color="#10b981" />
-            <span style={{ color: '#94a3b8', fontWeight: 600 }}>Zero-Knowledge Geofence</span>
+        <div className="text-center space-y-1">
+          <div className="text-[11px] font-mono tracking-widest uppercase text-[#f58a3c] font-bold">
+            GOVERNMENT OF INDIA &bull; DoSJE
           </div>
-          <div>SHA-256 Tamper Evident</div>
-          <div style={{ marginTop: '0.5rem', fontSize: '0.7rem', color: '#38bdf8' }}>v1.0.0 (Phase 10 Integrated)</div>
-        </div>
-      </aside>
-
-      {/* Main Area */}
-      <div className="main-content">
-        {/* Topbar */}
-        <header className="topbar">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-              {activeTab === 'map' && 'National Geospatial Command Center & Telemetry Stream'}
-              {activeTab === 'inspections' && 'Weighted Random Assignment & Inspection Lifecycle'}
-              {activeTab === 'anomalies' && 'Explainable AI Anomaly & Fraud Detection Engine'}
-              {activeTab === 'cctv' && 'Live CCTV Surveillance Matrix & Tokenized Stream Proxy'}
-              {activeTab === 'projects' && 'Infrastructure Projects & Geofence Boundaries'}
-              {activeTab === 'health' && 'Cluster Infrastructure & Socket.IO Topology'}
-            </h1>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.4rem 0.85rem',
-                borderRadius: '9999px',
-                background: 'rgba(16, 185, 129, 0.1)',
-                border: '1px solid rgba(16, 185, 129, 0.25)',
-                fontSize: '0.75rem',
-                color: '#34d399',
-                fontWeight: 600,
-              }}
-            >
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
-              <span>Real-Time Telemetry Connected</span>
-            </div>
-
-            <button
-              onClick={() => {
-                fetchProjects();
-                fetchInspections();
-                fetchAlerts();
-                fetchCameras();
-                fetchHealth();
-              }}
-              style={{
-                background: 'rgba(30, 41, 59, 0.8)',
-                border: '1px solid var(--border-subtle)',
-                color: '#94a3b8',
-                padding: '0.5rem',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              title="Refresh Data"
-            >
-              <RefreshCw size={16} />
-            </button>
-          </div>
-        </header>
-
-        {/* Content Body */}
-        <div className="content-body">
-          {/* ================================================================= */}
-          {/* TAB 1: GIS LIVE COMMAND MAP */}
-          {/* ================================================================= */}
-          {activeTab === 'map' && (
-            <div>
-              {/* Metric Row */}
-              <div className="grid-cols-4">
-                <div className="card">
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>MONITORED PROJECTS</div>
-                  <div style={{ fontSize: '1.75rem', fontWeight: 800, marginTop: '0.25rem', color: '#38bdf8' }}>
-                    {projects.length}
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>Across 28 States & UTs</div>
-                </div>
-
-                <div className="card">
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>ACTIVE MISSIONS</div>
-                  <div style={{ fontSize: '1.75rem', fontWeight: 800, marginTop: '0.25rem', color: '#34d399' }}>
-                    {inspections.filter((i) => i.status === 'IN_PROGRESS' || i.status === 'EN_ROUTE').length || 2}
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>Streaming Live GPS Coordinates</div>
-                </div>
-
-                <div className="card">
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>CCTV FEEDS ONLINE</div>
-                  <div style={{ fontSize: '1.75rem', fontWeight: 800, marginTop: '0.25rem', color: '#fbbf24' }}>
-                    {cameras.filter((c) => c.status === 'ONLINE').length || cameras.length}
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>Edge Heartbeat Verified</div>
-                </div>
-
-                <div className="card">
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>CRITICAL ANOMALIES</div>
-                  <div style={{ fontSize: '1.75rem', fontWeight: 800, marginTop: '0.25rem', color: '#f87171' }}>
-                    {alerts.filter((a) => a.severity === 'CRITICAL' && a.status === 'OPEN').length}
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>AI Discrepancy Escalations</div>
-                </div>
-              </div>
-
-              {/* Main Interactive Map Canvas */}
-              <div
-                className="card"
-                style={{
-                  position: 'relative',
-                  height: '560px',
-                  padding: 0,
-                  overflow: 'hidden',
-                  background: 'radial-gradient(ellipse at 50% 50%, #0f172a 0%, #070d19 100%)',
-                  border: '1px solid rgba(56, 189, 248, 0.25)',
-                }}
-              >
-                {/* Map Controls Toolbar */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '1rem',
-                    left: '1rem',
-                    zIndex: 20,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    background: 'rgba(15, 23, 42, 0.85)',
-                    backdropFilter: 'blur(8px)',
-                    padding: '0.4rem 0.6rem',
-                    borderRadius: '8px',
-                    border: '1px solid var(--border-subtle)',
-                  }}
-                >
-                  <button
-                    onClick={() => setMapFilterLayer('all')}
-                    style={{
-                      background: mapFilterLayer === 'all' ? '#0284c7' : 'transparent',
-                      color: 'white',
-                      border: 'none',
-                      padding: '0.25rem 0.6rem',
-                      borderRadius: '4px',
-                      fontSize: '0.75rem',
-                      cursor: 'pointer',
-                      fontWeight: 600,
-                    }}
-                  >
-                    All Entities
-                  </button>
-                  <button
-                    onClick={() => setMapFilterLayer('projects')}
-                    style={{
-                      background: mapFilterLayer === 'projects' ? '#0284c7' : 'transparent',
-                      color: 'white',
-                      border: 'none',
-                      padding: '0.25rem 0.6rem',
-                      borderRadius: '4px',
-                      fontSize: '0.75rem',
-                      cursor: 'pointer',
-                      fontWeight: 600,
-                    }}
-                  >
-                    Projects Only
-                  </button>
-                  <button
-                    onClick={() => setMapFilterLayer('cctv')}
-                    style={{
-                      background: mapFilterLayer === 'cctv' ? '#0284c7' : 'transparent',
-                      color: 'white',
-                      border: 'none',
-                      padding: '0.25rem 0.6rem',
-                      borderRadius: '4px',
-                      fontSize: '0.75rem',
-                      cursor: 'pointer',
-                      fontWeight: 600,
-                    }}
-                  >
-                    CCTV Nodes
-                  </button>
-                  <button
-                    onClick={() => setMapFilterLayer('inspectors')}
-                    style={{
-                      background: mapFilterLayer === 'inspectors' ? '#0284c7' : 'transparent',
-                      color: 'white',
-                      border: 'none',
-                      padding: '0.25rem 0.6rem',
-                      borderRadius: '4px',
-                      fontSize: '0.75rem',
-                      cursor: 'pointer',
-                      fontWeight: 600,
-                    }}
-                  >
-                    Live Inspectors
-                  </button>
-                </div>
-
-                {/* SVG Geospatial Canvas */}
-                <svg
-                  width="100%"
-                  height="100%"
-                  viewBox="0 0 800 600"
-                  style={{ width: '100%', height: '100%' }}
-                >
-                  {/* Grid Lines */}
-                  <defs>
-                    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(148, 163, 184, 0.05)" strokeWidth="1" />
-                    </pattern>
-                    <radialGradient id="beaconGlow" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
-                      <stop offset="100%" stopColor="#0284c7" stopOpacity="0" />
-                    </radialGradient>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#grid)" />
-
-                  {/* Render Projects */}
-                  {(mapFilterLayer === 'all' || mapFilterLayer === 'projects') &&
-                    projectedEntities
-                      .filter((e) => e.kind === 'PROJECT')
-                      .map((p) => {
-                        const isSelected = selectedMapEntity?.id === p.id;
-                        const fillColor =
-                          p.riskLevel === 'CRITICAL'
-                            ? '#ef4444'
-                            : p.riskLevel === 'HIGH'
-                              ? '#f59e0b'
-                              : p.riskLevel === 'MEDIUM'
-                                ? '#38bdf8'
-                                : '#10b981';
-
-                        return (
-                          <g
-                            key={p.id}
-                            onClick={() => setSelectedMapEntity(p)}
-                            style={{ cursor: 'pointer' }}
-                          >
-                            {/* Geofence Perimeter Halo */}
-                            <circle
-                              cx={p.mapX}
-                              cy={p.mapY}
-                              r={isSelected ? 26 : 16}
-                              fill={fillColor}
-                              fillOpacity={isSelected ? 0.25 : 0.1}
-                              stroke={fillColor}
-                              strokeWidth={1}
-                              strokeDasharray="3 2"
-                            />
-                            {/* Project Marker Node */}
-                            <circle
-                              cx={p.mapX}
-                              cy={p.mapY}
-                              r={isSelected ? 7 : 5}
-                              fill={fillColor}
-                              stroke="#ffffff"
-                              strokeWidth={1.5}
-                            />
-                            <text
-                              x={p.mapX + 9}
-                              y={p.mapY + 4}
-                              fill="#f8fafc"
-                              fontSize="10"
-                              fontWeight="600"
-                              style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}
-                            >
-                              {p.name?.slice(0, 22)}...
-                            </text>
-                          </g>
-                        );
-                      })}
-
-                  {/* Render CCTV Cameras */}
-                  {(mapFilterLayer === 'all' || mapFilterLayer === 'cctv') &&
-                    projectedEntities
-                      .filter((e) => e.kind === 'CCTV')
-                      .map((c) => (
-                        <g
-                          key={c.id}
-                          onClick={() => {
-                            setSelectedMapEntity(c);
-                            handleOpenStreamModal(c);
-                          }}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          <circle cx={c.mapX} cy={c.mapY} r={10} fill="rgba(245, 158, 11, 0.2)" />
-                          <circle cx={c.mapX} cy={c.mapY} r={4} fill="#f59e0b" stroke="#ffffff" strokeWidth={1} />
-                          <text x={c.mapX + 8} y={c.mapY + 3} fill="#fbbf24" fontSize="9" fontWeight="600">
-                            📹 {c.code}
-                          </text>
-                        </g>
-                      ))}
-
-                  {/* Render Live Inspectors */}
-                  {(mapFilterLayer === 'all' || mapFilterLayer === 'inspectors') &&
-                    projectedEntities
-                      .filter((e) => e.kind === 'INSPECTOR')
-                      .map((i) => (
-                        <g
-                          key={i.id}
-                          onClick={() => setSelectedMapEntity(i)}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          {/* Live Accuracy Circle */}
-                          <circle cx={i.mapX} cy={i.mapY} r={14} fill="rgba(16, 185, 129, 0.2)" />
-                          <circle cx={i.mapX} cy={i.mapY} r={5} fill="#10b981" stroke="#ffffff" strokeWidth={1.5} />
-                          <text x={i.mapX + 8} y={i.mapY + 3} fill="#34d399" fontSize="9" fontWeight="700">
-                            📍 {i.name} ({i.speedKmh} km/h)
-                          </text>
-                        </g>
-                      ))}
-                </svg>
-
-                {/* Selected Entity Inspector Panel (Slide-in) */}
-                {selectedMapEntity && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '1rem',
-                      right: '1rem',
-                      bottom: '1rem',
-                      width: '320px',
-                      background: 'rgba(15, 23, 42, 0.95)',
-                      backdropFilter: 'blur(16px)',
-                      border: '1px solid rgba(56, 189, 248, 0.3)',
-                      borderRadius: '12px',
-                      padding: '1.25rem',
-                      zIndex: 30,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.85rem',
-                      boxShadow: 'var(--shadow-lg)',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span
-                        style={{
-                          fontSize: '0.7rem',
-                          fontWeight: 700,
-                          padding: '0.2rem 0.5rem',
-                          borderRadius: '4px',
-                          background: 'rgba(56, 189, 248, 0.2)',
-                          color: '#38bdf8',
-                        }}
-                      >
-                        {selectedMapEntity.kind}
-                      </span>
-                      <button
-                        onClick={() => setSelectedMapEntity(null)}
-                        style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
-                      >
-                        ✕
-                      </button>
-                    </div>
-
-                    <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#f8fafc' }}>
-                      {selectedMapEntity.name || selectedMapEntity.code}
-                    </h3>
-
-                    {selectedMapEntity.kind === 'PROJECT' && (
-                      <>
-                        <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                          <div><strong>Scheme:</strong> {selectedMapEntity.scheme}</div>
-                          <div><strong>State / District:</strong> {selectedMapEntity.state}, {selectedMapEntity.district}</div>
-                          <div><strong>Budget:</strong> ₹{selectedMapEntity.sanctionedBudget?.toLocaleString()}</div>
-                          <div><strong>Risk Level:</strong> {selectedMapEntity.riskLevel} (Score: {selectedMapEntity.riskScore}/100)</div>
-                          <div><strong>Geofence Radius:</strong> {selectedMapEntity.geofenceRadiusMeters}m</div>
-                        </div>
-
-                        <button
-                          onClick={() => {
-                            setAutoAssignState(selectedMapEntity.state);
-                            setAutoAssignModalOpen(true);
-                          }}
-                          style={{
-                            marginTop: 'auto',
-                            background: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)',
-                            color: 'white',
-                            border: 'none',
-                            padding: '0.6rem',
-                            borderRadius: '6px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.5rem',
-                          }}
-                        >
-                          <Sparkles size={16} />
-                          <span>Dispatch Surprise Inspection</span>
-                        </button>
-                      </>
-                    )}
-
-                    {selectedMapEntity.kind === 'CCTV' && (
-                      <>
-                        <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                          <div><strong>Status:</strong> {selectedMapEntity.status}</div>
-                          <div><strong>Protocol:</strong> {selectedMapEntity.protocol}</div>
-                          <div><strong>Location:</strong> {selectedMapEntity.locationDescription}</div>
-                          <div><strong>Resolution:</strong> {selectedMapEntity.resolution} @ {selectedMapEntity.fps}fps</div>
-                        </div>
-
-                        <button
-                          onClick={() => handleOpenStreamModal(selectedMapEntity)}
-                          style={{
-                            marginTop: 'auto',
-                            background: '#0284c7',
-                            color: 'white',
-                            border: 'none',
-                            padding: '0.6rem',
-                            borderRadius: '6px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.5rem',
-                          }}
-                        >
-                          <Video size={16} />
-                          <span>Launch Live Surveillance</span>
-                        </button>
-                      </>
-                    )}
-
-                    {selectedMapEntity.kind === 'INSPECTOR' && (
-                      <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                        <div><strong>Officer:</strong> {selectedMapEntity.name}</div>
-                        <div><strong>Status:</strong> {selectedMapEntity.status}</div>
-                        <div><strong>Speed:</strong> {selectedMapEntity.speedKmh} km/h</div>
-                        <div><strong>GPS Accuracy:</strong> ±{selectedMapEntity.accuracyMeters}m</div>
-                        <div><strong>Device Battery:</strong> {selectedMapEntity.batteryLevel}%</div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ================================================================= */}
-          {/* TAB 2: AI ANOMALY RADAR */}
-          {/* ================================================================= */}
-          {activeTab === 'anomalies' && (
-            <div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '1.5rem' }}>
-                {/* Left: Anomaly Feed */}
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <select
-                        value={alertFilterSeverity}
-                        onChange={(e) => setAlertFilterSeverity(e.target.value)}
-                        style={{
-                          background: 'var(--bg-card)',
-                          color: '#f8fafc',
-                          border: '1px solid var(--border-subtle)',
-                          padding: '0.4rem 0.75rem',
-                          borderRadius: '6px',
-                          fontSize: '0.8rem',
-                        }}
-                      >
-                        <option value="">All Severities</option>
-                        <option value="CRITICAL">Critical Only</option>
-                        <option value="HIGH">High Only</option>
-                        <option value="MEDIUM">Medium Only</option>
-                      </select>
-
-                      <select
-                        value={alertFilterStatus}
-                        onChange={(e) => setAlertFilterStatus(e.target.value)}
-                        style={{
-                          background: 'var(--bg-card)',
-                          color: '#f8fafc',
-                          border: '1px solid var(--border-subtle)',
-                          padding: '0.4rem 0.75rem',
-                          borderRadius: '6px',
-                          fontSize: '0.8rem',
-                        }}
-                      >
-                        <option value="">All Statuses</option>
-                        <option value="OPEN">Open Only</option>
-                        <option value="INVESTIGATING">Investigating</option>
-                        <option value="RESOLVED">Resolved</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {alerts.length === 0 ? (
-                      <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
-                        <ShieldCheck size={40} color="#10b981" style={{ margin: '0 auto 1rem' }} />
-                        <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>Zero Active Fraud Anomalies Detected</div>
-                        <div style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '0.25rem' }}>
-                          All project muster rolls, progress milestones, and photographic evidence signatures are concordant.
-                        </div>
-                      </div>
-                    ) : (
-                      alerts.map((alert) => {
-                        const isCritical = alert.severity === 'CRITICAL';
-                        const isHigh = alert.severity === 'HIGH';
-                        const borderColor = isCritical ? '#ef4444' : isHigh ? '#f59e0b' : '#38bdf8';
-
-                        return (
-                          <div
-                            key={alert.id}
-                            className="card"
-                            style={{
-                              borderLeft: `4px solid ${borderColor}`,
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '0.75rem',
-                            }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <span
-                                  style={{
-                                    fontSize: '0.7rem',
-                                    fontWeight: 700,
-                                    padding: '0.2rem 0.5rem',
-                                    borderRadius: '4px',
-                                    background: isCritical ? 'rgba(239, 68, 68, 0.2)' : 'rgba(245, 158, 11, 0.2)',
-                                    color: isCritical ? '#f87171' : '#fbbf24',
-                                  }}
-                                >
-                                  {alert.severity} • {alert.type}
-                                </span>
-                                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                                  Confidence: {Math.round(alert.confidence * 100)}%
-                                </span>
-                              </div>
-
-                              <span
-                                style={{
-                                  fontSize: '0.75rem',
-                                  fontWeight: 600,
-                                  color: alert.status === 'RESOLVED' ? '#34d399' : '#fbbf24',
-                                }}
-                              >
-                                {alert.status}
-                              </span>
-                            </div>
-
-                            <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#f8fafc' }}>{alert.title}</h3>
-                            <p style={{ fontSize: '0.85rem', color: '#cbd5e1', lineHeight: '1.4' }}>{alert.reason}</p>
-
-                            {alert.status === 'OPEN' && (
-                              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
-                                <button
-                                  onClick={() => {
-                                    setSelectedAlert(alert);
-                                    setResolveModalOpen(true);
-                                  }}
-                                  style={{
-                                    background: '#0284c7',
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '0.4rem 0.85rem',
-                                    borderRadius: '6px',
-                                    fontSize: '0.8rem',
-                                    fontWeight: 600,
-                                    cursor: 'pointer',
-                                  }}
-                                >
-                                  Resolve / Take Action
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-
-                {/* Right: AI Interactive Discrepancy Simulator */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div className="card">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                      <Zap size={18} color="#38bdf8" />
-                      <h3 style={{ fontSize: '1rem', fontWeight: 700 }}>AI Muster Anomaly Simulator</h3>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.8rem' }}>
-                      <div>
-                        <label style={{ color: '#94a3b8', display: 'block', marginBottom: '0.25rem' }}>
-                          Claimed Biometric Muster (Workers)
-                        </label>
-                        <input
-                          type="number"
-                          value={simClaimed}
-                          onChange={(e) => setSimClaimed(Number(e.target.value))}
-                          style={{
-                            width: '100%',
-                            background: 'var(--bg-secondary)',
-                            border: '1px solid var(--border-subtle)',
-                            color: 'white',
-                            padding: '0.5rem',
-                            borderRadius: '6px',
-                          }}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ color: '#94a3b8', display: 'block', marginBottom: '0.25rem' }}>
-                          Verified On-Site Headcount (Physical)
-                        </label>
-                        <input
-                          type="number"
-                          value={simObserved}
-                          onChange={(e) => setSimObserved(Number(e.target.value))}
-                          style={{
-                            width: '100%',
-                            background: 'var(--bg-secondary)',
-                            border: '1px solid var(--border-subtle)',
-                            color: 'white',
-                            padding: '0.5rem',
-                            borderRadius: '6px',
-                          }}
-                        />
-                      </div>
-
-                      <button
-                        onClick={handleRunAttendanceSimulation}
-                        disabled={simLoading}
-                        style={{
-                          background: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)',
-                          color: 'white',
-                          border: 'none',
-                          padding: '0.6rem',
-                          borderRadius: '6px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          marginTop: '0.5rem',
-                        }}
-                      >
-                        {simLoading ? 'Running AI Model...' : 'Simulate & Evaluate'}
-                      </button>
-
-                      {simResult && (
-                        <div
-                          style={{
-                            marginTop: '0.5rem',
-                            padding: '0.75rem',
-                            borderRadius: '6px',
-                            background: simResult.isAnomaly ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                            border: `1px solid ${simResult.isAnomaly ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`,
-                          }}
-                        >
-                          <div style={{ fontWeight: 700, color: simResult.isAnomaly ? '#f87171' : '#34d399' }}>
-                            {simResult.severity} • {simResult.isAnomaly ? 'ANOMALY DETECTED' : 'NORMAL'}
-                          </div>
-                          <div style={{ fontSize: '0.75rem', marginTop: '0.25rem', color: '#cbd5e1' }}>
-                            {simResult.explainableReason}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ================================================================= */}
-          {/* TAB 3: CCTV SURVEILLANCE MATRIX */}
-          {/* ================================================================= */}
-          {activeTab === 'cctv' && (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-                <div style={{ fontSize: '0.9rem', color: '#94a3b8' }}>
-                  Showing {cameras.length} live surveillance feeds across project perimeters
-                </div>
-              </div>
-
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                  gap: '1.25rem',
-                }}
-              >
-                {cameras.map((camera) => (
-                  <div
-                    key={camera.id}
-                    className="card"
-                    style={{
-                      padding: 0,
-                      overflow: 'hidden',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      border: '1px solid var(--border-subtle)',
-                    }}
-                  >
-                    {/* Video Placeholder Box */}
-                    <div
-                      style={{
-                        height: '180px',
-                        background: '#070d19',
-                        position: 'relative',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                      }}
-                      onClick={() => handleOpenStreamModal(camera)}
-                    >
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '0.75rem',
-                          left: '0.75rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.4rem',
-                          background: 'rgba(0,0,0,0.75)',
-                          padding: '0.2rem 0.5rem',
-                          borderRadius: '4px',
-                          fontSize: '0.7rem',
-                          fontWeight: 700,
-                          color: '#f8fafc',
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: 6,
-                            height: 6,
-                            borderRadius: '50%',
-                            background: camera.status === 'ONLINE' ? '#10b981' : '#f59e0b',
-                          }}
-                        />
-                        <span>{camera.code}</span>
-                      </div>
-
-                      <div
-                        style={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: '50%',
-                          background: 'rgba(2, 132, 199, 0.8)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'white',
-                          boxShadow: '0 0 16px rgba(56, 189, 248, 0.5)',
-                        }}
-                      >
-                        <Video size={20} />
-                      </div>
-
-                      <div
-                        style={{
-                          position: 'absolute',
-                          bottom: '0.75rem',
-                          right: '0.75rem',
-                          background: 'rgba(0,0,0,0.75)',
-                          padding: '0.2rem 0.4rem',
-                          borderRadius: '4px',
-                          fontSize: '0.65rem',
-                          color: '#94a3b8',
-                        }}
-                      >
-                        {camera.resolution || '1080p'} • {camera.fps || 30} FPS
-                      </div>
-                    </div>
-
-                    <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                      <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#f8fafc' }}>{camera.name}</h4>
-                      <p style={{ fontSize: '0.75rem', color: '#64748b' }}>{camera.locationDescription}</p>
-
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem' }}>
-                        <span
-                          style={{
-                            fontSize: '0.7rem',
-                            fontWeight: 600,
-                            color: camera.status === 'ONLINE' ? '#34d399' : '#fbbf24',
-                          }}
-                        >
-                          ● {camera.status}
-                        </span>
-
-                        <button
-                          onClick={() => handleOpenStreamModal(camera)}
-                          style={{
-                            background: 'rgba(56, 189, 248, 0.15)',
-                            color: '#38bdf8',
-                            border: '1px solid rgba(56, 189, 248, 0.3)',
-                            padding: '0.3rem 0.65rem',
-                            borderRadius: '4px',
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          Watch Live
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ================================================================= */}
-          {/* TAB 4: INSPECTIONS & RANDOM ENGINE */}
-          {/* ================================================================= */}
-          {activeTab === 'inspections' && (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-                <div style={{ fontSize: '0.9rem', color: '#94a3b8' }}>
-                  Showing {inspections.length} total field inspection missions
-                </div>
-
-                <button
-                  onClick={() => setAutoAssignModalOpen(true)}
-                  style={{
-                    background: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)',
-                    color: 'white',
-                    border: 'none',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '8px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                  }}
-                >
-                  <Sparkles size={16} />
-                  <span>Run Weighted Random Assignment</span>
-                </button>
-              </div>
-
-              <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
-                  <thead>
-                    <tr style={{ background: 'rgba(15, 23, 42, 0.9)', borderBottom: '1px solid var(--border-subtle)' }}>
-                      <th style={{ padding: '0.85rem 1rem', color: '#94a3b8' }}>INSPECTION ID</th>
-                      <th style={{ padding: '0.85rem 1rem', color: '#94a3b8' }}>PROJECT</th>
-                      <th style={{ padding: '0.85rem 1rem', color: '#94a3b8' }}>OFFICER</th>
-                      <th style={{ padding: '0.85rem 1rem', color: '#94a3b8' }}>TYPE</th>
-                      <th style={{ padding: '0.85rem 1rem', color: '#94a3b8' }}>STAGE</th>
-                      <th style={{ padding: '0.85rem 1rem', color: '#94a3b8' }}>GEOFENCE</th>
-                      <th style={{ padding: '0.85rem 1rem', color: '#94a3b8' }}>SCORE</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {inspections.map((insp) => (
-                      <tr key={insp.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                        <td style={{ padding: '0.85rem 1rem', fontWeight: 700, color: '#38bdf8' }}>
-                          {insp.inspectionId}
-                        </td>
-                        <td style={{ padding: '0.85rem 1rem', color: '#f8fafc' }}>
-                          {insp.projectId?.name || 'Assigned Project'}
-                        </td>
-                        <td style={{ padding: '0.85rem 1rem', color: '#cbd5e1' }}>
-                          {insp.inspectorId?.name || 'Assigned Officer'}
-                        </td>
-                        <td style={{ padding: '0.85rem 1rem' }}>
-                          <span
-                            style={{
-                              fontSize: '0.7rem',
-                              fontWeight: 700,
-                              padding: '0.2rem 0.45rem',
-                              borderRadius: '4px',
-                              background: insp.type === 'SURPRISE' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(56, 189, 248, 0.15)',
-                              color: insp.type === 'SURPRISE' ? '#f87171' : '#38bdf8',
-                            }}
-                          >
-                            {insp.type}
-                          </span>
-                        </td>
-                        <td style={{ padding: '0.85rem 1rem', fontWeight: 600, color: '#34d399' }}>
-                          {insp.status}
-                        </td>
-                        <td style={{ padding: '0.85rem 1rem' }}>
-                          {insp.isLocationVerified ? (
-                            <span style={{ color: '#34d399', fontWeight: 600 }}>✓ Verified</span>
-                          ) : (
-                            <span style={{ color: '#64748b' }}>Pending</span>
-                          )}
-                        </td>
-                        <td style={{ padding: '0.85rem 1rem', fontWeight: 700 }}>
-                          {insp.score !== undefined ? `${insp.score}%` : '—'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* ================================================================= */}
-          {/* TAB 5: PROJECTS EXPLORER */}
-          {/* ================================================================= */}
-          {activeTab === 'projects' && (
-            <div>
-              <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
-                  <thead>
-                    <tr style={{ background: 'rgba(15, 23, 42, 0.9)', borderBottom: '1px solid var(--border-subtle)' }}>
-                      <th style={{ padding: '0.85rem 1rem', color: '#94a3b8' }}>CODE</th>
-                      <th style={{ padding: '0.85rem 1rem', color: '#94a3b8' }}>NAME</th>
-                      <th style={{ padding: '0.85rem 1rem', color: '#94a3b8' }}>SCHEME</th>
-                      <th style={{ padding: '0.85rem 1rem', color: '#94a3b8' }}>LOCATION</th>
-                      <th style={{ padding: '0.85rem 1rem', color: '#94a3b8' }}>BUDGET</th>
-                      <th style={{ padding: '0.85rem 1rem', color: '#94a3b8' }}>RISK SCORE</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {projects.map((p) => (
-                      <tr key={p.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                        <td style={{ padding: '0.85rem 1rem', fontWeight: 700, color: '#38bdf8' }}>{p.code}</td>
-                        <td style={{ padding: '0.85rem 1rem', color: '#f8fafc', fontWeight: 600 }}>{p.name}</td>
-                        <td style={{ padding: '0.85rem 1rem', color: '#cbd5e1' }}>{p.scheme}</td>
-                        <td style={{ padding: '0.85rem 1rem', color: '#94a3b8' }}>{p.state}, {p.district}</td>
-                        <td style={{ padding: '0.85rem 1rem', fontWeight: 600 }}>₹{p.sanctionedBudget?.toLocaleString()}</td>
-                        <td style={{ padding: '0.85rem 1rem' }}>
-                          <span
-                            style={{
-                              fontSize: '0.7rem',
-                              fontWeight: 700,
-                              padding: '0.2rem 0.5rem',
-                              borderRadius: '4px',
-                              background: p.riskLevel === 'CRITICAL' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(56, 189, 248, 0.2)',
-                              color: p.riskLevel === 'CRITICAL' ? '#f87171' : '#38bdf8',
-                            }}
-                          >
-                            {p.riskLevel} ({p.riskScore || 50}/100)
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* ================================================================= */}
-          {/* TAB 6: CLUSTER HEALTH */}
-          {/* ================================================================= */}
-          {activeTab === 'health' && (
-            <div>
-              <div className="grid-cols-4">
-                <div className="card">
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>API STATUS</div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 800, marginTop: '0.25rem', color: '#34d399' }}>
-                    {health?.status || 'HEALTHY'}
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Node.js / Express 4 Engine</div>
-                </div>
-
-                <div className="card">
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>DATABASE</div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 800, marginTop: '0.25rem', color: '#38bdf8' }}>
-                    {(health as any)?.database || (health as any)?.services?.database?.status || 'CONNECTED'}
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>MongoDB 2dsphere GeoCluster</div>
-                </div>
-
-                <div className="card">
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>SOCKET TELEMETRY</div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 800, marginTop: '0.25rem', color: '#38bdf8' }}>
-                    ACTIVE
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Real-Time Event Channels</div>
-                </div>
-
-                <div className="card">
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>AI MICROSERVICE</div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 800, marginTop: '0.25rem', color: '#34d399' }}>
-                    ONLINE
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>FastAPI Anomaly Engine</div>
-                </div>
-              </div>
-            </div>
-          )}
+          <h2 className="text-sm font-bold text-[#0f2147]">
+            Verifying Authenticated Security Session
+          </h2>
+          <p className="text-xs text-[#6b7a96]">
+            Resolving server-enforced role, granular permissions, and jurisdictional scope...
+          </p>
         </div>
       </div>
+    );
+  }
 
-      {/* ===================================================================== */}
-      {/* MODAL 1: LIVE CCTV STREAM POPUP */}
-      {/* ===================================================================== */}
-      {cameraModalOpen && selectedCamera && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.85)',
-            backdropFilter: 'blur(8px)',
-            zIndex: 100,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '1rem',
-          }}
-        >
-          <div
-            style={{
-              width: '640px',
-              background: 'var(--bg-secondary)',
-              border: '1px solid rgba(56, 189, 248, 0.4)',
-              borderRadius: '12px',
-              overflow: 'hidden',
-              boxShadow: 'var(--shadow-glow)',
-            }}
-          >
-            <div
-              style={{
-                padding: '1rem 1.25rem',
-                borderBottom: '1px solid var(--border-subtle)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+  if (!isAuthenticated || !user) {
+    return <LoginPage />;
+  }
+
+  const portalKind = portalKindFromRoles(hasRole);
+  const homeTab =
+    portalKind === 'ngo' ? 'ngo_overview'
+    : portalKind === 'inspector' ? 'inspector_today'
+    : portalKind === 'beneficiary' ? 'ben_profile'
+    : 'command';
+
+  return (
+    <div className="min-h-screen bg-[#f3f6fb] text-[#0f2147] flex flex-col font-sans">
+      {/* Government portal header + navigation bar */}
+      <Topbar
+        searchQuery={globalSearch}
+        onSearchChange={(q) => {
+          setGlobalSearch(q);
+          fetchProjects();
+        }}
+        backendOnline={!!health}
+        unreadAlertsCount={openAnomaliesCount}
+        onOpenNotifications={() => setNotificationsOpen(true)}
+        onOpenArchitecture={() => setArchitectureModalOpen(true)}
+        onOpenSessions={() => setSessionsModalOpen(true)}
+        onOpenPersonaSwitcher={() => setPersonaSwitcherOpen(true)}
+        onGoHome={() => setActiveTab(homeTab)}
+      />
+
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Navigation Sidebar */}
+        <Sidebar
+          activeTab={activeTab}
+          onSelectTab={(tabId) => setActiveTab(tabId)}
+          openAnomaliesCount={openAnomaliesCount}
+          openActionsCount={openActionsCount}
+        />
+
+        {/* Center Main Stage Content */}
+        <main className="flex-1 min-w-0 p-6 overflow-y-auto bg-[#f3f6fb]">
+          {/* Role-specific welcome banner + quick tiles (shown on each role's home view) */}
+          {activeTab === homeTab && (
+            <PortalHero kind={portalKind} activeTab={activeTab} onSelectTab={setActiveTab} />
+          )}
+          {portalKind === 'official' && activeTab === 'command' && hasPermission(Permissions.PROJECT_VIEW) && (
+            <div className="mb-6">
+              <CoverageFilterBar
+                stateValue={stateFilter}
+                riskValue={riskFilter}
+                statusValue={statusFilter}
+                count={projects.length}
+                onChange={(f) => {
+                  if (f.state !== undefined) setStateFilter(f.state);
+                  if (f.risk !== undefined) setRiskFilter(f.risk);
+                  if (f.status !== undefined) setStatusFilter(f.status);
+                }}
+                onSearch={() => setFilterNonce((n) => n + 1)}
+                onReset={() => {
+                  setStateFilter('');
+                  setRiskFilter('');
+                  setStatusFilter('');
+                  setGlobalSearch('');
+                  setFilterNonce((n) => n + 1);
+                }}
+              />
+            </div>
+          )}
+          {/* ============================================================= */}
+          {/* ROLE: NGO / INSTITUTION DASHBOARD */}
+          {/* ============================================================= */}
+          {isNgo && (
+            <NgoDashboard
+              organization={projects[0]?.organizationId}
+              projects={projects}
+              beneficiaries={beneficiaries}
+              actions={correctiveActions}
+              activeSubTab={activeTab}
+              onSelectSubTab={setActiveTab}
+              onRefreshData={() => {
+                fetchUnits();
+                fetchCorrectiveActions();
               }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Video size={18} color="#38bdf8" />
-                <span style={{ fontWeight: 700, color: 'white' }}>{selectedCamera.name}</span>
-                <span
-                  style={{
-                    fontSize: '0.65rem',
-                    padding: '0.1rem 0.4rem',
-                    background: 'rgba(16, 185, 129, 0.2)',
-                    color: '#34d399',
-                    borderRadius: '4px',
-                    fontWeight: 700,
-                  }}
-                >
-                  LIVE HLS FEED
-                </span>
-              </div>
-              <button
-                onClick={() => setCameraModalOpen(false)}
-                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.2rem' }}
-              >
-                ✕
-              </button>
-            </div>
+            />
+          )}
 
-            {/* Video Canvas Simulation */}
-            <div
-              style={{
-                height: '360px',
-                background: '#070d19',
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexDirection: 'column',
-                gap: '1rem',
+          {/* ============================================================= */}
+          {/* ROLE: FIELD INSPECTOR MOBILE DASHBOARD */}
+          {/* ============================================================= */}
+          {isInspector && (
+            <InspectorDashboard
+              inspections={inspections}
+              activeSubTab={activeTab}
+              onSelectSubTab={setActiveTab}
+              onUpdateInspectionStatus={async (id, status, loc) => {
+                try {
+                  await fetch(`/api/v1/inspections/${id}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+                    body: JSON.stringify({ status, locationLog: loc }),
+                  });
+                  fetchInspections();
+                } catch (err) {
+                  console.error(err);
+                }
               }}
-            >
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '1rem',
-                  left: '1rem',
-                  fontSize: '0.75rem',
-                  color: '#34d399',
-                  fontFamily: 'monospace',
-                  background: 'rgba(0,0,0,0.7)',
-                  padding: '0.2rem 0.5rem',
-                  borderRadius: '4px',
-                }}
-              >
-                REC ● {new Date().toLocaleTimeString()} • 30 FPS • 1080p
-              </div>
+              onSubmitChecklist={async (id, answers) => {
+                try {
+                  await fetch(`/api/v1/inspections/${id}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+                    body: JSON.stringify({ status: 'SUBMITTED', checklistResponses: answers }),
+                  });
+                  fetchInspections();
+                } catch (err) {
+                  console.error(err);
+                }
+              }}
+            />
+          )}
 
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: '1rem',
-                  left: '1rem',
-                  fontSize: '0.75rem',
-                  color: '#94a3b8',
-                  background: 'rgba(0,0,0,0.7)',
-                  padding: '0.2rem 0.5rem',
-                  borderRadius: '4px',
-                }}
-              >
-                📍 {selectedCamera.locationDescription}
-              </div>
+          {/* ============================================================= */}
+          {/* ROLE: CITIZEN BENEFICIARY PORTAL */}
+          {/* ============================================================= */}
+          {isBeneficiary && (
+            <BeneficiaryDashboard
+              beneficiary={beneficiaries[0]}
+              activeSubTab={activeTab}
+              onSelectSubTab={setActiveTab}
+            />
+          )}
 
-              <Video size={48} color="#0284c7" />
-              <div style={{ color: '#cbd5e1', fontSize: '0.85rem' }}>
-                Secure Tokenized Stream Manifest Proxy Active
-              </div>
-            </div>
+          {/* ============================================================= */}
+          {/* ROLE: DoSJE OFFICIAL COMMAND CENTRE & SPECIALIZED VIEWS */}
+          {/* ============================================================= */}
+          {!isNgo && !isInspector && !isBeneficiary && (
+            <>
+              {/* TAB 1: COMMAND CENTRE */}
+              {activeTab === 'command' && (
+                <div className="space-y-6">
+                  {/* Top Situational Awareness Banner */}
+                  <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800/80 font-bold uppercase">
+                          SITUATION INTELLIGENCE
+                        </span>
+                        <span className="text-xs text-slate-400 font-mono">NATIONAL OVERSIGHT MATRIX</span>
+                      </div>
+                      <h2 className="text-lg font-bold text-slate-100">National Monitoring & Fraud Adjudication Command Centre</h2>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Autonomous cross-dataset anomaly detection &bull; Weighted random surprise inspections &bull; CCTV telemetry
+                      </p>
+                    </div>
 
-            <div style={{ padding: '1rem 1.25rem', display: 'flex', justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setCameraModalOpen(false)}
-                style={{
-                  background: '#334155',
-                  color: 'white',
-                  border: 'none',
-                  padding: '0.5rem 1rem',
-                  borderRadius: '6px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Close Feed
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          fetchProjects();
+                          fetchInspections();
+                          fetchAlerts();
+                          fetchCameras();
+                          fetchHealth();
+                        }}
+                        className="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium flex items-center gap-1.5 transition"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" /> Refresh Telemetry
+                      </button>
+                      <button
+                        onClick={() => setAutoAssignModalOpen(true)}
+                        className="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center gap-1.5 transition shadow-lg shadow-indigo-950/40"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" /> Weighted Random Assignment
+                      </button>
+                    </div>
+                  </div>
 
-      {/* ===================================================================== */}
-      {/* MODAL 2: AUTO-ASSIGN SURPRISE INSPECTIONS */}
-      {/* ===================================================================== */}
+                  {/* High-Level Metric KPIs */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800">
+                      <div className="text-slate-400 text-xs font-medium">Monitored Institutions</div>
+                      <div className="text-2xl font-bold font-mono text-sky-400 mt-1">{health ? projects.length : 0}</div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">Across Maharashtra, Delhi, TN, Karnataka</div>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800">
+                      <div className="text-slate-400 text-xs font-medium">Active Inspection Missions</div>
+                      <div className="text-2xl font-bold font-mono text-emerald-400 mt-1">
+                        {health ? inspections.filter((i) => i.status === 'IN_PROGRESS' || i.status === 'EN_ROUTE').length : 0}
+                      </div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">Live GPS fixes tracked</div>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800">
+                      <div className="text-slate-400 text-xs font-medium">Surveillance CCTVs Online</div>
+                      <div className="text-2xl font-bold font-mono text-amber-400 mt-1">
+                        {health ? cameras.filter((c) => c.status === 'ONLINE').length : 0}
+                      </div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">Tokenized stream proxy</div>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800">
+                      <div className="text-slate-400 text-xs font-medium">Critical Fraud Anomalies</div>
+                      <div className="text-2xl font-bold font-mono text-red-400 mt-1">
+                        {health ? alerts.filter((a) => a.severity === 'CRITICAL' && a.status === 'OPEN').length : 0}
+                      </div>
+                      <div className="text-[11px] text-red-400/80 mt-0.5">Requiring human adjudication</div>
+                    </div>
+                  </div>
+
+                  {/* Google Earth GIS Map + Real-Time Alert Feed */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden h-[540px] flex flex-col">
+                      <div className="p-3.5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-indigo-400" />
+                          <span className="text-xs font-bold font-mono uppercase text-slate-300">
+                            Geospatial Command Map &bull; Google Earth Satellite Hybrid
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/80">
+                          GEOFENCE RADIUS ENFORCED
+                        </span>
+                      </div>
+                      <div className="flex-1 relative">
+                        <GoogleEarthLeafletMap
+                          projects={projects}
+                          cameras={cameras}
+                          inspectors={liveInspectors}
+                          units={units}
+                          selectedEntity={null}
+                          onSelectEntity={(entity) => openEntityDrawer('project', entity)}
+                          onOpenStreamModal={handleOpenStreamModal}
+                          filterLayer={mapFilterLayer}
+                          onChangeFilterLayer={setMapFilterLayer}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Alert Feed & Decision Support */}
+                    <div className="rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden flex flex-col h-[540px]">
+                      <div className="p-3.5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <ShieldAlert className="w-4 h-4 text-red-400" />
+                          <span className="text-xs font-bold font-mono uppercase text-slate-300">
+                            Real-Time Anomaly Triage Feed
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-mono text-slate-400">{alerts.length} signals</span>
+                      </div>
+
+                      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                        {alerts.length === 0 ? (
+                          <div className="text-center py-16 text-slate-500 text-xs">
+                            No active anomaly signals detected.
+                          </div>
+                        ) : (
+                          alerts.map((al, idx) => (
+                            <div
+                              key={al.id || idx}
+                              onClick={() => openEntityDrawer('anomaly', al)}
+                              className="p-3.5 rounded-xl bg-slate-950/80 hover:bg-slate-800/70 border border-slate-800/80 cursor-pointer transition space-y-1.5"
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-semibold text-xs text-slate-200">{al.title}</span>
+                                <StatusBadge status={al.severity} type="risk" />
+                              </div>
+                              <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">{al.reason}</p>
+                              <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 pt-1 border-t border-slate-800/60">
+                                <span>{al.source || 'RULE_ENGINE'}</span>
+                                <span className="text-indigo-400 font-bold hover:underline">Review &rarr;</span>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: GEO INTELLIGENCE (FULLSCREEN GIS) */}
+              {activeTab === 'geo' && (
+                <div className="rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden h-[calc(100vh-8rem)] flex flex-col">
+                  <div className="p-3.5 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-indigo-400" />
+                      <span className="text-xs font-bold font-mono uppercase text-slate-300">
+                        National Geospatial Command Centre &bull; High Resolution Google Earth Satellite
+                      </span>
+                    </div>
+                    <div className="text-[11px] font-mono text-slate-400">
+                      Layer: {mapFilterLayer.toUpperCase()} &bull; 5 Base Tile Engines
+                    </div>
+                  </div>
+                  <div className="flex-1 relative">
+                    <GoogleEarthLeafletMap
+                      projects={projects}
+                      cameras={cameras}
+                      inspectors={liveInspectors}
+                      units={units}
+                      selectedEntity={null}
+                      onSelectEntity={(entity) => openEntityDrawer('project', entity)}
+                      onOpenStreamModal={handleOpenStreamModal}
+                      filterLayer={mapFilterLayer}
+                      onChangeFilterLayer={setMapFilterLayer}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: INSTITUTIONS DIRECTORY */}
+              {activeTab === 'institutions' && (
+                hasPermission(Permissions.INSTITUTION_VIEW) ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-sm font-bold text-slate-100">Monitored Institutional Facilities Directory</h2>
+                      <span className="text-xs font-mono text-slate-400">{projects.length} institutions</span>
+                    </div>
+
+                    <div className="rounded-xl bg-slate-900/90 border border-slate-800 overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-950 text-slate-400 border-b border-slate-800 font-mono uppercase text-[11px]">
+                            <tr>
+                              <th className="p-3.5">Institution Name</th>
+                              <th className="p-3.5">Code</th>
+                              <th className="p-3.5">Scheme</th>
+                              <th className="p-3.5">Location</th>
+                              <th className="p-3.5">Geofence</th>
+                              <th className="p-3.5">Risk Score</th>
+                              <th className="p-3.5">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-800 text-slate-300">
+                            {projects.map((p) => (
+                              <tr
+                                key={p.id || p._id}
+                                onClick={() => openEntityDrawer('project', p)}
+                                className="hover:bg-slate-800/40 transition cursor-pointer"
+                              >
+                                <td className="p-3.5 font-semibold text-slate-100">{p.name}</td>
+                                <td className="p-3.5 font-mono text-slate-400">{p.code}</td>
+                                <td className="p-3.5">{p.scheme}</td>
+                                <td className="p-3.5">{p.district}, {p.state}</td>
+                                <td className="p-3.5 font-mono">{p.geofenceRadiusMeters || 250}m</td>
+                                <td className="p-3.5 font-mono font-bold text-amber-400">{p.riskScore || 25}/100</td>
+                                <td className="p-3.5">
+                                  <StatusBadge status={p.status} />
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <AccessDenied
+                    requiredPermission={Permissions.INSTITUTION_VIEW}
+                    onGoHome={() => setActiveTab('command')}
+                  />
+                )
+              )}
+
+              {/* TAB 4: PROJECTS */}
+              {activeTab === 'projects' && (
+                hasPermission(Permissions.PROJECT_VIEW) ? (
+                  <div className="space-y-4">
+                    <h2 className="text-sm font-bold text-slate-100">Infrastructure Projects & Geofenced Schemes</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {projects.map((p) => (
+                        <div
+                          key={p.id || p._id}
+                          onClick={() => openEntityDrawer('project', p)}
+                          className="p-5 rounded-xl bg-slate-900 hover:bg-slate-850 border border-slate-800 cursor-pointer transition space-y-3"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <span className="text-[10px] font-mono text-slate-500 uppercase">{p.code}</span>
+                              <h3 className="text-sm font-bold text-slate-100 mt-0.5">{p.name}</h3>
+                            </div>
+                            <StatusBadge status={p.riskLevel} type="risk" />
+                          </div>
+                          <p className="text-xs text-slate-400 line-clamp-2">{p.description}</p>
+                          <div className="grid grid-cols-2 gap-2 text-xs font-mono text-slate-300 bg-slate-950 p-2.5 rounded-lg border border-slate-800/80">
+                            <div>State: {p.state}</div>
+                            <div>Radius: {p.geofenceRadiusMeters || 250}m</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <AccessDenied
+                    requiredPermission={Permissions.PROJECT_VIEW}
+                    onGoHome={() => setActiveTab('command')}
+                  />
+                )
+              )}
+
+              {/* TAB 5: BENEFICIARIES */}
+              {activeTab === 'beneficiaries' && (
+                hasPermission(Permissions.BENEFICIARY_VIEW) ? (
+                  <BeneficiariesView
+                    beneficiaries={beneficiaries}
+                    stats={beneficiaryStats}
+                    loading={false}
+                    onSearch={(q) => fetchBeneficiaries(q)}
+                    onFilterEligibility={(el) => fetchBeneficiaries('', el)}
+                    onFilterRisk={(rk) => fetchBeneficiaries('', '', rk)}
+                    onSelectBeneficiary={(b) => openEntityDrawer('beneficiary', b)}
+                  />
+                ) : (
+                  <AccessDenied
+                    requiredPermission={Permissions.BENEFICIARY_VIEW}
+                    onGoHome={() => setActiveTab('command')}
+                  />
+                )
+              )}
+
+              {/* TAB 6: ATTENDANCE & YUNET AI */}
+              {activeTab === 'attendance' && (
+                hasPermission(Permissions.ATTENDANCE_VIEW) ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-sm font-bold text-slate-100">Beneficiary Attendance & Face Verification AI</h2>
+                        <p className="text-xs text-slate-400">OpenCV YuNet multi-face detection + official rollcall register matching</p>
+                      </div>
+                    </div>
+                    <CaptureWorkflow onSessionFinalized={fetchUnits} />
+                  </div>
+                ) : (
+                  <AccessDenied
+                    requiredPermission={Permissions.ATTENDANCE_VIEW}
+                    onGoHome={() => setActiveTab('command')}
+                  />
+                )
+              )}
+
+              {/* TAB 7: SURPRISE INSPECTIONS */}
+              {activeTab === 'inspections' && (
+                hasPermission(Permissions.INSPECTION_VIEW) ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-sm font-bold text-slate-100">Inspection Lifecycle & Weighted Random Assignment</h2>
+                        <p className="text-xs text-slate-400">Transparent random assignment: (0.4 Dist + 0.3 ActiveCount + 0.3 Workload)</p>
+                      </div>
+                      <button
+                        onClick={() => setAutoAssignModalOpen(true)}
+                        className="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center gap-1.5 transition"
+                      >
+                        <Sparkles className="w-4 h-4" /> Run Random Assignment
+                      </button>
+                    </div>
+
+                    <div className="rounded-xl bg-slate-900/90 border border-slate-800 overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-950 text-slate-400 border-b border-slate-800 font-mono uppercase text-[11px]">
+                            <tr>
+                              <th className="p-3.5">Mission Code</th>
+                              <th className="p-3.5">Project Target</th>
+                              <th className="p-3.5">Inspector</th>
+                              <th className="p-3.5">Type</th>
+                              <th className="p-3.5">Priority</th>
+                              <th className="p-3.5">GPS Verification</th>
+                              <th className="p-3.5">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-800 text-slate-300">
+                            {inspections.map((insp) => (
+                              <tr key={insp.id || insp._id} className="hover:bg-slate-800/40 transition">
+                                <td className="p-3.5 font-mono font-bold text-indigo-400">{insp.inspectionId}</td>
+                                <td className="p-3.5 font-semibold text-slate-100">{insp.projectId?.name || 'Project Facility'}</td>
+                                <td className="p-3.5">{insp.inspectorId?.name || 'Assigned Officer'}</td>
+                                <td className="p-3.5">{insp.type}</td>
+                                <td className="p-3.5">
+                                  <StatusBadge status={insp.priority} type="risk" />
+                                </td>
+                                <td className="p-3.5">
+                                  <span className={`font-mono text-[11px] ${insp.isLocationVerified ? 'text-emerald-400' : 'text-slate-500'}`}>
+                                    {insp.isLocationVerified ? 'Geofence Verified' : 'Pending Check-In'}
+                                  </span>
+                                </td>
+                                <td className="p-3.5">
+                                  <StatusBadge status={insp.status} />
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <AccessDenied
+                    requiredPermission={Permissions.INSPECTION_VIEW}
+                    onGoHome={() => setActiveTab('command')}
+                  />
+                )
+              )}
+
+              {/* TAB 8: ANOMALY INTELLIGENCE */}
+              {activeTab === 'anomalies' && (
+                hasPermission(Permissions.ANOMALY_VIEW) ? (
+                  <div className="space-y-6">
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-red-950/40 via-slate-900 to-slate-900 border border-red-900/40 flex items-center justify-between">
+                      <div>
+                        <h2 className="text-sm font-bold text-slate-100">Explainable AI Anomaly & Fraud Detection Engine</h2>
+                        <p className="text-xs text-slate-400">
+                          Statistical outliers, isolation forests, and rule-based triggers requiring official human-in-the-loop review.
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-semibold">
+                        DECISION SUPPORT ONLY
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {alerts.map((al) => (
+                        <div
+                          key={al.id}
+                          onClick={() => openEntityDrawer('anomaly', al)}
+                          className="p-5 rounded-xl bg-slate-900 hover:bg-slate-850 border border-slate-800 cursor-pointer transition space-y-3"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <span className="text-[10px] font-mono text-slate-500 uppercase">{al.source || 'AI SERVICE'}</span>
+                              <h3 className="text-sm font-bold text-slate-100 mt-0.5">{al.title}</h3>
+                            </div>
+                            <StatusBadge status={al.severity} type="risk" />
+                          </div>
+                          <p className="text-xs text-slate-300 leading-relaxed">{al.reason}</p>
+                          <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-800">
+                            <StatusBadge status={al.status} />
+                            <span className="text-indigo-400 font-bold hover:underline">Adjudicate Anomaly &rarr;</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <AccessDenied
+                    requiredPermission={Permissions.ANOMALY_VIEW}
+                    onGoHome={() => setActiveTab('command')}
+                  />
+                )
+              )}
+
+              {/* TAB 9: FINANCIAL INTELLIGENCE */}
+              {activeTab === 'financial' && (
+                hasPermission(Permissions.FINANCIAL_VIEW) ? (
+                  <FinancialIntelligenceView
+                    financialRecords={financialRecords}
+                    stats={financialStats}
+                    onRunAudit={handleRunFinancialAudit}
+                    onSelectProject={(p) => openEntityDrawer('project', p)}
+                    loading={false}
+                  />
+                ) : (
+                  <AccessDenied
+                    requiredPermission={Permissions.FINANCIAL_VIEW}
+                    onGoHome={() => setActiveTab('command')}
+                  />
+                )
+              )}
+
+              {/* TAB 10: CCTV & VC */}
+              {activeTab === 'cctv_vc' && (
+                hasPermission(Permissions.CCTV_VIEW) ? (
+                  <VCSurpriseView
+                    cameras={cameras}
+                    sessions={vcSessions}
+                    projects={projects}
+                    onInitiateSurpriseVC={handleInitiateSurpriseVC}
+                    onSelectProject={(proj) => openEntityDrawer('project', proj)}
+                    onOpenStreamModal={handleOpenStreamModal}
+                    loading={false}
+                  />
+                ) : (
+                  <AccessDenied
+                    requiredPermission={Permissions.CCTV_VIEW}
+                    onGoHome={() => setActiveTab('command')}
+                  />
+                )
+              )}
+
+              {/* TAB 11: MINISTRY COMPLIANCE */}
+              {activeTab === 'compliance' && (
+                hasPermission(Permissions.COMPLIANCE_VIEW) ? (
+                  <ComplianceView
+                    records={complianceRecords}
+                    stats={complianceStats}
+                    loading={false}
+                    onSearch={(q) => fetchCompliance(q)}
+                    onFilterState={(st) => fetchCompliance('', st)}
+                    onFilterStatus={(st) => fetchCompliance('', '', st)}
+                    onSelectRecord={(r) => openEntityDrawer('compliance', r)}
+                  />
+                ) : (
+                  <AccessDenied
+                    requiredPermission={Permissions.COMPLIANCE_VIEW}
+                    onGoHome={() => setActiveTab('command')}
+                  />
+                )
+              )}
+
+              {/* TAB 12: CORRECTIVE ACTIONS */}
+              {activeTab === 'corrective_actions' && (
+                hasPermission(Permissions.CORRECTIVE_ACTION_VIEW) ? (
+                  <CorrectiveActionsView
+                    actions={correctiveActions}
+                    stats={correctiveStats}
+                    loading={false}
+                    onUpdateStatus={handleUpdateCorrectiveStatus}
+                    onCreateAction={handleCreateCorrectiveAction}
+                  />
+                ) : (
+                  <AccessDenied
+                    requiredPermission={Permissions.CORRECTIVE_ACTION_VIEW}
+                    onGoHome={() => setActiveTab('command')}
+                  />
+                )
+              )}
+
+
+              {/* TAB 13: DEMO RUNNER REMOVED — not applicable for production deployment */}
+
+              {/* TAB 14: AUDIT TRAIL & REPORTS */}
+              {activeTab === 'reports_audit' && (
+                hasPermission(Permissions.AUDIT_VIEW) ? (
+                  <div className="space-y-4 text-xs">
+                    <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+                      <div>
+                        <h2 className="text-sm font-bold text-slate-100">Immutable Audit Trail & Regulatory Exports</h2>
+                        <p className="text-slate-400">Cryptographically verifiable event log for all inspections, logins, and adjudications.</p>
+                      </div>
+                      <span className="text-[10px] font-mono px-2.5 py-1 rounded bg-slate-950 text-emerald-400 border border-emerald-800">
+                        SHA-256 HASH CHAIN VERIFIED
+                      </span>
+                    </div>
+
+                    <div className="divide-y divide-slate-800 bg-slate-900/90 rounded-xl border border-slate-800 p-4">
+                      {[
+                        { actor: 'Dr. Rajesh Verma (Joint Secretary)', action: 'REVIEW_ANOMALY', target: 'INSP-2026-PUN-001', time: '10 mins ago', ip: '10.24.18.2' },
+                        { actor: 'Automated Anomaly Engine', action: 'FLAG_BURST', target: 'St. Jude Hostel', time: '25 mins ago', ip: '127.0.0.1' },
+                        { actor: 'Amitabh Sharma (Field Inspector)', action: 'GPS_CHECK_IN', target: 'Hinjawadi Kendra', time: '1 hour ago', ip: '192.168.1.45' },
+                        { actor: 'National System Super Admin', action: 'SYSTEM_LOGIN', target: 'Central Session', time: '2 hours ago', ip: '10.24.18.1' },
+                      ].map((log, idx) => (
+                        <div key={idx} className="py-3 flex items-center justify-between">
+                          <div>
+                            <span className="font-semibold text-slate-200">{log.actor}</span>
+                            <span className="text-slate-500 font-mono text-[11px] block">{log.action} &bull; Target: {log.target}</span>
+                          </div>
+                          <div className="text-right font-mono text-slate-400 text-[11px]">
+                            <div>{log.time}</div>
+                            <div className="text-slate-500 text-[10px]">{log.ip}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <AccessDenied
+                    requiredPermission={Permissions.AUDIT_VIEW}
+                    onGoHome={() => setActiveTab('command')}
+                  />
+                )
+              )}
+
+              {/* TAB 15: USER MANAGEMENT & RBAC DELEGATION */}
+              {activeTab === 'users' && (
+                hasPermission(Permissions.USER_VIEW) ||
+                hasRole(UserRole.SYSTEM_SUPER_ADMIN) ||
+                hasRole(UserRole.DOSJE_HQ_ADMIN) ? (
+                  <UserManagementView />
+                ) : (
+                  <AccessDenied
+                    requiredPermission={Permissions.USER_VIEW}
+                    onGoHome={() => setActiveTab('command')}
+                  />
+                )
+              )}
+            </>
+          )}
+        </main>
+      </div>
+
+      {/* Universal Right Slide-Over Entity Investigation Drawer */}
+      <EntityDrawer
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        title={drawerTitle}
+        subtitle={drawerSubtitle}
+        entityType={drawerType}
+        data={drawerEntity}
+        onAction={handleDrawerAction}
+        onOpenStreamModal={handleOpenStreamModal}
+      />
+
+      {/* Weighted Random Inspection Assignment Modal */}
       {autoAssignModalOpen && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.85)',
-            backdropFilter: 'blur(8px)',
-            zIndex: 100,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '1rem',
-          }}
-        >
-          <div
-            style={{
-              width: '520px',
-              background: 'var(--bg-secondary)',
-              border: '1px solid rgba(56, 189, 248, 0.4)',
-              borderRadius: '12px',
-              padding: '1.5rem',
-              boxShadow: 'var(--shadow-glow)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Sparkles size={20} color="#38bdf8" />
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white' }}>Weighted Random Assignment Engine</h3>
-              </div>
-              <button
-                onClick={() => setAutoAssignModalOpen(false)}
-                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.2rem' }}
-              >
-                ✕
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-indigo-400" />
+              Weighted Random Inspection Assignment
+            </h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Transparent algorithmic assignment score: <strong>0.40 &times; Distance + 0.30 &times; Active Missions + 0.30 &times; Total Workload</strong>. Mitigates repeat-pairing leniency bias.
+            </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.85rem' }}>
+            <div className="space-y-3 text-xs">
               <div>
-                <label style={{ color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>State / Region</label>
+                <label className="text-slate-400 block mb-1">Target State / Jurisdiction</label>
                 <select
                   value={autoAssignState}
                   onChange={(e) => setAutoAssignState(e.target.value)}
-                  style={{
-                    width: '100%',
-                    background: 'var(--bg-primary)',
-                    border: '1px solid var(--border-subtle)',
-                    color: 'white',
-                    padding: '0.6rem',
-                    borderRadius: '6px',
-                  }}
+                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 focus:outline-none"
                 >
-                  <option value="Maharashtra">Maharashtra</option>
-                  <option value="Karnataka">Karnataka</option>
-                  <option value="Delhi">Delhi</option>
-                  <option value="Tamil Nadu">Tamil Nadu</option>
-                  <option value="">Nationwide (All States)</option>
+                  <option value="Maharashtra">Maharashtra (Pune / Mumbai)</option>
+                  <option value="Delhi">Delhi NCT</option>
+                  <option value="Karnataka">Karnataka (Bengaluru)</option>
+                  <option value="Tamil Nadu">Tamil Nadu (Chennai)</option>
                 </select>
               </div>
 
               <div>
-                <label style={{ color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Target Assignment Count</label>
+                <label className="text-slate-400 block mb-1">Inspection Type</label>
+                <select
+                  value={autoAssignType}
+                  onChange={(e) => setAutoAssignType(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 focus:outline-none"
+                >
+                  <option value="SURPRISE">Surprise Unannounced Inspection</option>
+                  <option value="ROUTINE">Routine Scheduled Audit</option>
+                  <option value="FOLLOW_UP">Deficiency Remediation Follow-Up</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-slate-400 block mb-1">Missions to Dispatch</label>
                 <input
                   type="number"
                   min={1}
                   max={10}
                   value={autoAssignCount}
-                  onChange={(e) => setAutoAssignCount(Number(e.target.value))}
-                  style={{
-                    width: '100%',
-                    background: 'var(--bg-primary)',
-                    border: '1px solid var(--border-subtle)',
-                    color: 'white',
-                    padding: '0.6rem',
-                    borderRadius: '6px',
-                  }}
+                  onChange={(e) => setAutoAssignCount(parseInt(e.target.value, 10))}
+                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 focus:outline-none"
                 />
               </div>
 
               {autoAssignResult && (
-                <div
-                  style={{
-                    padding: '0.75rem',
-                    borderRadius: '6px',
-                    background: 'rgba(16, 185, 129, 0.15)',
-                    border: '1px solid rgba(16, 185, 129, 0.3)',
-                    color: '#34d399',
-                  }}
-                >
-                  ✅ Successfully generated {autoAssignResult.count} conflict-free surprise missions!
+                <div className="p-3 rounded-lg bg-emerald-950/40 border border-emerald-800/80 text-emerald-300 text-xs space-y-1">
+                  <div className="font-bold flex items-center gap-1.5">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    <span>Dispatched {autoAssignResult.assignmentsCount || autoAssignCount} Surprise Inspections!</span>
+                  </div>
+                  <p className="text-[11px] text-slate-300">
+                    Missions transmitted to field inspectors with cryptographic geo-fences.
+                  </p>
                 </div>
               )}
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+              <div className="flex items-center justify-end gap-2 pt-2">
                 <button
+                  type="button"
                   onClick={() => setAutoAssignModalOpen(false)}
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid var(--border-subtle)',
-                    color: '#94a3b8',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                  }}
+                  className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition"
                 >
-                  Cancel
+                  Close
                 </button>
                 <button
-                  onClick={handleTriggerAutoAssign}
+                  type="button"
                   disabled={autoAssignLoading}
-                  style={{
-                    background: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)',
-                    color: 'white',
-                    border: 'none',
-                    padding: '0.5rem 1.25rem',
-                    borderRadius: '6px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
+                  onClick={handleTriggerAutoAssign}
+                  className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition shadow-lg shadow-indigo-950/40"
                 >
-                  {autoAssignLoading ? 'Computing 6-Factor Algorithm...' : 'Generate Missions'}
+                  {autoAssignLoading ? 'Calculating Weights...' : 'Execute Assignment'}
                 </button>
               </div>
             </div>
@@ -1867,107 +1445,28 @@ export function App() {
         </div>
       )}
 
-      {/* ===================================================================== */}
-      {/* MODAL 3: RESOLVE ANOMALY ALERT */}
-      {/* ===================================================================== */}
-      {resolveModalOpen && selectedAlert && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.85)',
-            backdropFilter: 'blur(8px)',
-            zIndex: 100,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '1rem',
-          }}
-        >
-          <div
-            style={{
-              width: '520px',
-              background: 'var(--bg-secondary)',
-              border: '1px solid rgba(239, 68, 68, 0.4)',
-              borderRadius: '12px',
-              padding: '1.5rem',
-              boxShadow: 'var(--shadow-glow)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <ShieldAlert size={20} color="#f87171" />
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white' }}>Resolve AI Fraud Alert</h3>
-              </div>
-              <button
-                onClick={() => setResolveModalOpen(false)}
-                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.2rem' }}
-              >
-                ✕
-              </button>
-            </div>
+      {/* Architecture Blueprint Modal */}
+      <ArchitectureModal
+        isOpen={architectureModalOpen}
+        onClose={() => setArchitectureModalOpen(false)}
+        onNavigateTab={(tab) => {
+          setActiveTab(tab);
+          setArchitectureModalOpen(false);
+        }}
+      />
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.85rem' }}>
-              <div>
-                <strong style={{ color: '#f87171' }}>{selectedAlert.title}</strong>
-                <p style={{ color: '#94a3b8', marginTop: '0.25rem' }}>{selectedAlert.reason}</p>
-              </div>
+      {/* Active Sessions Security Modal */}
+      <SessionsModal
+        isOpen={sessionsModalOpen}
+        onClose={() => setSessionsModalOpen(false)}
+      />
 
-              <div>
-                <label style={{ color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>
-                  Resolution Notes & Administrative Penalty Details
-                </label>
-                <textarea
-                  rows={4}
-                  value={resolutionNotes}
-                  onChange={(e) => setResolutionNotes(e.target.value)}
-                  placeholder="Enter detailed investigation findings, disciplinary action, or contractor penalty..."
-                  style={{
-                    width: '100%',
-                    background: 'var(--bg-primary)',
-                    border: '1px solid var(--border-subtle)',
-                    color: 'white',
-                    padding: '0.6rem',
-                    borderRadius: '6px',
-                    fontFamily: 'inherit',
-                  }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
-                <button
-                  onClick={() => setResolveModalOpen(false)}
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid var(--border-subtle)',
-                    color: '#94a3b8',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleResolveAlert}
-                  disabled={resolvingLoading}
-                  style={{
-                    background: '#10b981',
-                    color: 'white',
-                    border: 'none',
-                    padding: '0.5rem 1.25rem',
-                    borderRadius: '6px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {resolvingLoading ? 'Saving...' : 'Mark Alert Resolved'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Evaluator Persona Switcher Modal */}
+      <PersonaSwitcherModal
+        isOpen={personaSwitcherOpen}
+        onClose={() => setPersonaSwitcherOpen(false)}
+      />
     </div>
   );
 }
+

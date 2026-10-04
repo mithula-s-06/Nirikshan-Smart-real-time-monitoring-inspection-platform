@@ -63,8 +63,9 @@ export function createApp(): Express {
   // 6. Serve static uploads (for local storage provider)
   app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 
-  // 7. Mount API Routes
+  // 7. Mount API Routes (supporting both /api/v1 and /api for full ecosystem compatibility)
   app.use(env.API_PREFIX, apiRouter);
+  app.use('/api', apiRouter);
 
   // 7. Base root route
   app.get('/', (_req, res) => {

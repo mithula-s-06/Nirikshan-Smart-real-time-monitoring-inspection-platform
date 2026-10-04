@@ -9,6 +9,7 @@ import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
 import { EvidenceType, IEvidence, UserRole, AuditAction } from '@nirikshan/shared-types';
 import { UploadEvidenceMetadataInput } from '@nirikshan/validation';
+import { FaceVerificationService } from './faceVerification.service';
 
 export class EvidenceService {
   /**
@@ -101,6 +102,36 @@ export class EvidenceService {
       `inspections/${inspection.id}`,
     );
 
+    // ── AI Face Verification (best-effort, non-blocking) ──────────────────
+    // For photos, call the unified AI service to detect & count faces.
+    // Results are stored alongside the evidence record for headcount audit.
+    let faceAnalysis: Record<string, any> | null = null;
+    if (inferredType === EvidenceType.PHOTO && file.buffer.length > 0) {
+      try {
+        const aiResult = await FaceVerificationService.analyzeImage(
+          file.buffer,
+          file.originalname,
+          file.mimetype,
+        );
+        if (aiResult) {
+          faceAnalysis = {
+            faceCount: aiResult.faceCount,
+            qualityOk: aiResult.quality.ok,
+            qualityReason: aiResult.quality.reason,
+            blur: aiResult.quality.blur,
+            brightness: aiResult.quality.brightness,
+            analyzedAt: new Date().toISOString(),
+          };
+          logger.info(
+            { inspectionId: inspection.id, faceCount: aiResult.faceCount, qualityOk: aiResult.quality.ok },
+            '🤖 AI face analysis completed for evidence photo',
+          );
+        }
+      } catch (aiErr: any) {
+        logger.warn({ err: aiErr?.message }, '⚠️  Face analysis skipped for evidence upload');
+      }
+    }
+
     // Create Evidence record
     const evidence = await Evidence.create({
       inspectionId: inspection._id,
@@ -128,6 +159,8 @@ export class EvidenceService {
       },
       tags: metadata.tags || [],
       description: metadata.description || '',
+      // AI-enriched face verification results (null if AI service was unavailable)
+      faceAnalysis: faceAnalysis ?? undefined,
     });
 
     // Link evidence ID to inspection

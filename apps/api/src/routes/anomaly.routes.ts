@@ -29,6 +29,12 @@ router.post(
 
 // Alert Management & Investigation Endpoints
 router.get(
+  '/',
+  authorize(UserRole.SUPER_ADMIN, UserRole.DEPARTMENT_OFFICIAL, UserRole.PMU_OFFICER, UserRole.INSPECTOR),
+  AnomalyController.getAlerts,
+);
+
+router.get(
   '/alerts',
   authorize(UserRole.SUPER_ADMIN, UserRole.DEPARTMENT_OFFICIAL, UserRole.PMU_OFFICER, UserRole.INSPECTOR),
   AnomalyController.getAlerts,

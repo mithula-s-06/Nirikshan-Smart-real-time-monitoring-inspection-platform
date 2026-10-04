@@ -45,7 +45,12 @@ export class InspectionController {
 
   public static async list(req: Request, res: Response<ApiResponse>, next: NextFunction): Promise<void> {
     try {
-      const result = await InspectionService.getInspections(req.query as any);
+      const query = { ...(req.query as any) };
+      // Scope enforcement: Field inspectors only see their assigned inspections
+      if (req.user?.role === 'INSPECTOR' || req.user?.role === 'PMU_INSPECTOR') {
+        query.inspectorId = req.user.id;
+      }
+      const result = await InspectionService.getInspections(query);
 
       res.status(200).json({
         success: true,

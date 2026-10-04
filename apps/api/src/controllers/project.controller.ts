@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { ProjectService } from '../services/project.service';
 import { ApiResponse } from '@nirikshan/shared-types';
+import { AuthorizationService } from '../services/authorization.service';
+import { AuthorizationError } from '../utils/errors';
 
 export class ProjectController {
   public static async create(req: Request, res: Response<ApiResponse>, next: NextFunction): Promise<void> {
@@ -26,7 +28,8 @@ export class ProjectController {
 
   public static async list(req: Request, res: Response<ApiResponse>, next: NextFunction): Promise<void> {
     try {
-      const result = await ProjectService.getProjects(req.query);
+      const scopeFilter = req.user ? AuthorizationService.buildScopeFilter(req.user, 'project') : {};
+      const result = await ProjectService.getProjects(req.query, scopeFilter);
 
       res.status(200).json({
         success: true,
@@ -45,6 +48,11 @@ export class ProjectController {
   public static async getById(req: Request, res: Response<ApiResponse>, next: NextFunction): Promise<void> {
     try {
       const project = await ProjectService.getProjectById(req.params.id);
+
+      // Object-Level Authorization Check (Prevents IDOR)
+      if (req.user && !AuthorizationService.canAccessObject(req.user, project, 'project')) {
+        throw new AuthorizationError('Access forbidden. This project is outside your authorized jurisdiction/scope.');
+      }
 
       res.status(200).json({
         success: true,

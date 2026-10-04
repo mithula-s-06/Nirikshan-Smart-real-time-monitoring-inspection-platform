@@ -9,6 +9,14 @@ import evidenceRoutes from './evidence.routes';
 import syncRoutes from './sync.routes';
 import anomalyRoutes from './anomaly.routes';
 import cctvRoutes from './cctv.routes';
+import attendanceRoutes from './attendance.routes';
+import complianceRoutes from './compliance.routes';
+import financialRoutes from './financial.routes';
+import correctiveActionRoutes from './correctiveAction.routes';
+import beneficiaryRoutes from './beneficiary.routes';
+import vcRoutes from './vc.routes';
+import riskRoutes from './risk.routes';
+import userRoutes from './user.routes';
 
 const router = Router();
 
@@ -42,6 +50,32 @@ router.use('/anomalies', anomalyRoutes);
 // /api/v1/cctv
 router.use('/cctv', cctvRoutes);
 
+// /api/v1/compliance
+router.use('/compliance', complianceRoutes);
+
+// /api/v1/financial
+router.use('/financial', financialRoutes);
+
+// /api/v1/corrective-actions
+router.use('/corrective-actions', correctiveActionRoutes);
+
+// /api/v1/beneficiaries
+router.use('/beneficiaries', beneficiaryRoutes);
+
+// /api/v1/vc
+router.use('/vc', vcRoutes);
+
+// /api/v1/risk
+router.use('/risk', riskRoutes);
+
+// /api/v1/attendance & unified beneficiary integrity (Rules 2-8, sessions, units, staff)
+router.use('/attendance', attendanceRoutes);
+router.use('/', attendanceRoutes);
+
+// /api/v1/users
+router.use('/users', userRoutes);
+
 export const apiRouter = router;
+
 
 

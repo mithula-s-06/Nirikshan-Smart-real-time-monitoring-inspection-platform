@@ -2,10 +2,16 @@ import { Request, Response } from 'express';
 import { getDatabaseStatus } from '../config/database';
 import { env } from '../config/env';
 import { ApiResponse, HealthStatus } from '@nirikshan/shared-types';
+import { FaceVerificationService } from '../services/faceVerification.service';
 
-export function getHealth(req: Request, res: Response<ApiResponse<HealthStatus>>): void {
+export async function getHealth(req: Request, res: Response<ApiResponse<HealthStatus>>): Promise<void> {
   const dbStatus = getDatabaseStatus();
-  const isHealthy = dbStatus === 'connected' || dbStatus === 'memory_fallback';
+  const isDbHealthy = dbStatus === 'connected' || dbStatus === 'memory_fallback';
+
+  // Live-probe the unified AI service
+  const aiOnline = await FaceVerificationService.isHealthy();
+
+  const isHealthy = isDbHealthy;
 
   const healthData: HealthStatus = {
     status: isHealthy ? 'healthy' : 'degraded',
@@ -18,7 +24,7 @@ export function getHealth(req: Request, res: Response<ApiResponse<HealthStatus>>
         status: dbStatus,
       },
       aiService: {
-        status: 'online',
+        status: aiOnline ? 'online' : 'offline',
         endpoint: env.AI_SERVICE_URL,
       },
       storage: {

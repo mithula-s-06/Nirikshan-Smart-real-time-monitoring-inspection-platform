@@ -14,12 +14,14 @@ router.post('/logout', AuthController.logout);
 
 // Protected Authentication Endpoints
 router.get('/me', authenticate, AuthController.getMe);
+router.get('/sessions', authenticate, AuthController.getSessions);
+router.delete('/sessions/:sessionId', authenticate, AuthController.revokeSession);
 
 // Admin-only User Creation
 router.post(
   '/users',
   authenticate,
-  authorize(UserRole.SUPER_ADMIN, UserRole.DEPARTMENT_OFFICIAL),
+  authorize(UserRole.SUPER_ADMIN, UserRole.SYSTEM_SUPER_ADMIN, UserRole.DOSJE_HQ_ADMIN, UserRole.DEPARTMENT_OFFICIAL),
   validateBody(createUserSchema),
   AuthController.createUser,
 );

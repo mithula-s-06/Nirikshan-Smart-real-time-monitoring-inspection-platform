@@ -59,8 +59,32 @@ const userSchema = new Schema<IUserDocument>(
       trim: true,
       index: true,
     },
+    designation: {
+      type: String,
+      trim: true,
+      default: 'Official',
+    },
     avatarUrl: {
       type: String,
+    },
+    failedLoginAttempts: {
+      type: Number,
+      default: 0,
+    },
+    lockoutUntil: {
+      type: Date,
+    },
+    isMfaEnabled: {
+      type: Boolean,
+      default: false,
+    },
+    temporaryAccess: {
+      role: { type: String },
+      scope: { type: Schema.Types.Mixed },
+      effectiveFrom: { type: Date },
+      effectiveUntil: { type: Date },
+      reason: { type: String },
+      approvedBy: { type: String },
     },
     lastLoginAt: {
       type: Date,

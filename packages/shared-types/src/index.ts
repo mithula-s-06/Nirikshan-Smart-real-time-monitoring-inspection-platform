@@ -2,16 +2,44 @@
 // NIRIKSHAN SHARED DOMAIN TYPES
 // ============================================================================
 
-// 1. Role-Based Access Control (RBAC)
+// 1. Role-Based Access Control (RBAC) & Government Hierarchy
 export enum UserRole {
+  // Super Administrator
   SUPER_ADMIN = 'SUPER_ADMIN',
+  SYSTEM_SUPER_ADMIN = 'SYSTEM_SUPER_ADMIN',
+
+  // Ministry / National HQ Roles
+  DOSJE_HQ_ADMIN = 'DOSJE_HQ_ADMIN',
   DEPARTMENT_OFFICIAL = 'DEPARTMENT_OFFICIAL',
-  PMU_OFFICER = 'PMU_OFFICER',
-  INSPECTOR = 'INSPECTOR',
+  DOSJE_HQ_OFFICIAL = 'DOSJE_HQ_OFFICIAL',
+
+  // State & District Jurisdictions
   STATE_AUTHORITY = 'STATE_AUTHORITY',
+  DOSJE_STATE_OFFICIAL = 'DOSJE_STATE_OFFICIAL',
   DISTRICT_AUTHORITY = 'DISTRICT_AUTHORITY',
+  DOSJE_DISTRICT_OFFICIAL = 'DOSJE_DISTRICT_OFFICIAL',
+
+  // Project Management Unit (PMU)
+  PMU_OFFICER = 'PMU_OFFICER',
+  PMU_MANAGER = 'PMU_MANAGER',
+  INSPECTOR = 'INSPECTOR',
+  PMU_INSPECTOR = 'PMU_INSPECTOR',
+
+  // Institution / NGO Tier
   INSTITUTE_ADMIN = 'INSTITUTE_ADMIN',
+  NGO_ADMIN = 'NGO_ADMIN',
+  NGO_PROJECT_MANAGER = 'NGO_PROJECT_MANAGER',
   PROJECT_STAFF = 'PROJECT_STAFF',
+  NGO_STAFF = 'NGO_STAFF',
+
+  // Citizen / Recipient
+  BENEFICIARY = 'BENEFICIARY',
+
+  // Specialized Audit & Governance
+  AUDITOR = 'AUDITOR',
+  COMPLIANCE_OFFICER = 'COMPLIANCE_OFFICER',
+  FINANCE_OFFICER = 'FINANCE_OFFICER',
+  VIEW_ONLY_OFFICIAL = 'VIEW_ONLY_OFFICIAL',
 }
 
 export enum UserStatus {
@@ -19,12 +47,126 @@ export enum UserStatus {
   INACTIVE = 'INACTIVE',
   SUSPENDED = 'SUSPENDED',
   PENDING_VERIFICATION = 'PENDING_VERIFICATION',
+  LOCKED = 'LOCKED',
+}
+
+// Data Scope & Jurisdiction Hierarchy
+export enum DataScopeLevel {
+  NATIONAL = 'NATIONAL',
+  STATE = 'STATE',
+  DISTRICT = 'DISTRICT',
+  ORGANIZATION = 'ORGANIZATION',
+  ASSIGNED_INSPECTIONS = 'ASSIGNED_INSPECTIONS',
+  SELF = 'SELF',
+}
+
+export interface IDataScope {
+  level: DataScopeLevel;
+  stateIds?: string[];
+  districtIds?: string[];
+  organizationIds?: string[];
+  assignedInspectionIds?: string[];
+  beneficiaryId?: string;
+}
+
+// Granular Permissions using resource.action format
+export const Permissions = {
+  INSTITUTION_READ: 'institution.read',
+  INSTITUTION_CREATE: 'institution.create',
+  INSTITUTION_UPDATE: 'institution.update',
+  INSTITUTION_SUSPEND: 'institution.suspend',
+  INSTITUTION_REVIEW: 'institution.review',
+
+  PROJECT_READ: 'project.read',
+  PROJECT_CREATE: 'project.create',
+  PROJECT_UPDATE: 'project.update',
+
+  BENEFICIARY_READ: 'beneficiary.read',
+  BENEFICIARY_CREATE: 'beneficiary.create',
+  BENEFICIARY_UPDATE: 'beneficiary.update',
+  BENEFICIARY_VERIFY: 'beneficiary.verify',
+
+  ATTENDANCE_READ: 'attendance.read',
+  ATTENDANCE_CREATE: 'attendance.create',
+  ATTENDANCE_REVIEW: 'attendance.review',
+  ATTENDANCE_FINALIZE: 'attendance.finalize',
+
+  INSPECTION_READ: 'inspection.read',
+  INSPECTION_CREATE: 'inspection.create',
+  INSPECTION_ASSIGN: 'inspection.assign',
+  INSPECTION_EXECUTE: 'inspection.execute',
+  INSPECTION_REVIEW: 'inspection.review',
+  INSPECTION_APPROVE: 'inspection.approve',
+
+  ANOMALY_READ: 'anomaly.read',
+  ANOMALY_REVIEW: 'anomaly.review',
+  ANOMALY_DISMISS: 'anomaly.dismiss',
+  ANOMALY_ESCALATE: 'anomaly.escalate',
+
+  FINANCIAL_READ: 'financial.read',
+  FINANCIAL_SUBMIT: 'financial.submit',
+  FINANCIAL_REVIEW: 'financial.review',
+  FINANCIAL_APPROVE: 'financial.approve',
+
+  COMPLIANCE_READ: 'compliance.read',
+  COMPLIANCE_UPDATE: 'compliance.update',
+  COMPLIANCE_REVIEW: 'compliance.review',
+
+  CCTV_READ: 'cctv.read',
+  CCTV_CONTROL: 'cctv.control',
+
+  VC_CREATE: 'vc.create',
+  VC_JOIN: 'vc.join',
+  VC_REVIEW: 'vc.review',
+
+  CORRECTIVE_ACTION_CREATE: 'corrective_action.create',
+  CORRECTIVE_ACTION_ASSIGN: 'corrective_action.assign',
+  CORRECTIVE_ACTION_CLOSE: 'corrective_action.close',
+
+  REPORT_READ: 'report.read',
+  REPORT_EXPORT: 'report.export',
+
+  AUDIT_READ: 'audit.read',
+
+  USER_CREATE: 'user.create',
+  USER_READ: 'user.read',
+  USER_UPDATE: 'user.update',
+  USER_DISABLE: 'user.disable',
+
+  SECURITY_MANAGE: 'security.manage',
+
+  // Convenience aliases for UI visibility checks
+  INSTITUTION_VIEW: 'institution.read',
+  PROJECT_VIEW: 'project.read',
+  BENEFICIARY_VIEW: 'beneficiary.read',
+  ATTENDANCE_VIEW: 'attendance.read',
+  INSPECTION_VIEW: 'inspection.read',
+  ANOMALY_VIEW: 'anomaly.read',
+  FINANCIAL_VIEW: 'financial.read',
+  COMPLIANCE_VIEW: 'compliance.read',
+  CCTV_VIEW: 'cctv.read',
+  CORRECTIVE_ACTION_VIEW: 'corrective_action.assign',
+  REPORT_VIEW: 'report.read',
+  AUDIT_VIEW: 'audit.read',
+  USER_VIEW: 'user.read',
+} as const;
+
+export type Permission = (typeof Permissions)[keyof typeof Permissions] | string;
+
+export interface ITemporaryAccess {
+  role: UserRole;
+  scope: IDataScope;
+  effectiveFrom: Date | string;
+  effectiveUntil: Date | string;
+  reason: string;
+  approvedBy: string;
 }
 
 export interface IUser {
   id: string;
   email: string;
   name: string;
+  designation?: string;
   phoneNumber?: string;
   role: UserRole;
   status: UserStatus;
@@ -32,9 +174,42 @@ export interface IUser {
   state?: string;
   district?: string;
   avatarUrl?: string;
+  failedLoginAttempts?: number;
+  lockoutUntil?: Date | string;
+  isMfaEnabled?: boolean;
+  temporaryAccess?: ITemporaryAccess;
   lastLoginAt?: Date | string;
   createdAt: Date | string;
   updatedAt: Date | string;
+}
+
+export interface ISession {
+  id: string;
+  userId: string;
+  tokenHash: string;
+  ipAddress: string;
+  userAgent: string;
+  deviceInfo?: string;
+  lastActiveAt: Date | string;
+  expiresAt: Date | string;
+  isValid: boolean;
+  revokedAt?: Date | string;
+  revokedReason?: string;
+  createdAt: Date | string;
+}
+
+export interface IAuthMeResponse {
+  user: IUser;
+  roles: UserRole[];
+  permissions: string[];
+  scope: IDataScope;
+  session?: {
+    id: string;
+    ipAddress?: string;
+    userAgent?: string;
+    lastActiveAt: Date | string;
+    expiresAt: Date | string;
+  };
 }
 
 // 2. Geospatial Definitions
@@ -372,8 +547,18 @@ export interface IAnomalyAlert {
 // 9. Audit Logging
 export enum AuditAction {
   LOGIN = 'LOGIN',
+  LOGIN_FAILED = 'LOGIN_FAILED',
   LOGOUT = 'LOGOUT',
   TOKEN_REFRESH = 'TOKEN_REFRESH',
+  PERMISSION_DENIED = 'PERMISSION_DENIED',
+  PASSWORD_RESET_REQUESTED = 'PASSWORD_RESET_REQUESTED',
+  PASSWORD_RESET_COMPLETED = 'PASSWORD_RESET_COMPLETED',
+  SESSION_REVOKED = 'SESSION_REVOKED',
+  USER_SUSPENDED = 'USER_SUSPENDED',
+  USER_REACTIVATED = 'USER_REACTIVATED',
+  EXPORT_GENERATED = 'EXPORT_GENERATED',
+  SCOPE_MODIFIED = 'SCOPE_MODIFIED',
+  SENSITIVE_ACTION_CONFIRMED = 'SENSITIVE_ACTION_CONFIRMED',
   INSPECTION_CREATED = 'INSPECTION_CREATED',
   INSPECTION_ASSIGNED = 'INSPECTION_ASSIGNED',
   INSPECTION_ACCEPTED = 'INSPECTION_ACCEPTED',
@@ -536,5 +721,234 @@ export interface ISyncPushResponse {
   failureCount: number;
   results: ISyncPushResultItem[];
   serverTimestamp: Date | string;
+}
+
+// 14. Compliance & NGO Historical Actions (blacklist.txt integration)
+export enum ComplianceActionType {
+  BLACKLISTED = 'BLACKLISTED',
+  GRANT_SUSPENDED = 'GRANT_SUSPENDED',
+  GRANT_RECOVERY = 'GRANT_RECOVERY',
+  ASSET_SEIZURE = 'ASSET_SEIZURE',
+  STATE_ENQUIRY = 'STATE_ENQUIRY',
+  WARNING_ISSUED = 'WARNING_ISSUED',
+  SHOW_CAUSE_NOTICE = 'SHOW_CAUSE_NOTICE',
+}
+
+export enum ComplianceVerificationStatus {
+  VERIFIED = 'VERIFIED',
+  HISTORICAL = 'HISTORICAL',
+  CURRENT = 'CURRENT',
+  SUPERSEDED = 'SUPERSEDED',
+  REQUIRES_REVIEW = 'REQUIRES_REVIEW',
+}
+
+export enum ComplianceCurrentStatus {
+  ACTIVE = 'ACTIVE',
+  UNDER_REVIEW = 'UNDER_REVIEW',
+  GRANT_SUSPENDED = 'GRANT_SUSPENDED',
+  BLACKLISTED = 'BLACKLISTED',
+  ACTION_REQUIRED = 'ACTION_REQUIRED',
+}
+
+export interface IComplianceRecord {
+  id: string;
+  ngoName: string;
+  organizationId?: string;
+  state: string;
+  district?: string;
+  actionType: ComplianceActionType;
+  actionDate?: string;
+  scheme?: string;
+  authority: string;
+  orderNumber?: string;
+  description: string;
+  sourceDocument: string;
+  verificationStatus: ComplianceVerificationStatus;
+  currentStatus: ComplianceCurrentStatus;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
+// 15. Financial Intelligence & Invoices (Rules 16-22)
+export interface IBudgetHead {
+  name: string;
+  sanctionedAmount: number;
+  utilizedAmount: number;
+  headLimit: number;
+}
+
+export interface IInvoice {
+  id: string;
+  invoiceNumber: string;
+  vendorName: string;
+  vendorGstin: string;
+  amount: number;
+  date: string;
+  description: string;
+  category: string;
+  documentHash: string;
+  isFlagged?: boolean;
+  flagReason?: string;
+}
+
+export interface IFinancialRecord {
+  id: string;
+  projectId: string;
+  organizationId?: string;
+  financialYear: string;
+  totalSanctionedGrant: number;
+  totalDisbursedFunds: number;
+  totalExpenditure: number;
+  openingBalance: number;
+  closingBalance: number;
+  verifiedPhysicalProgressPercent: number;
+  financialBurnPercent: number;
+  budgetHeads: IBudgetHead[];
+  invoices: IInvoice[];
+  riskScore: number;
+  anomaliesDetected: string[];
+  lastAuditedAt?: Date | string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+// 16. Corrective Action Lifecycle
+export enum CorrectiveActionStatus {
+  OPEN = 'OPEN',
+  IN_PROGRESS = 'IN_PROGRESS',
+  OVERDUE = 'OVERDUE',
+  SUBMITTED = 'SUBMITTED',
+  VERIFIED = 'VERIFIED',
+  CLOSED = 'CLOSED',
+}
+
+export enum CorrectiveActionPriority {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  CRITICAL = 'CRITICAL',
+}
+
+export interface ICorrectiveAction {
+  id: string;
+  actionNumber: string;
+  title: string;
+  description: string;
+  responsibleAuthority: string;
+  organizationId: string;
+  projectId?: string;
+  inspectionId?: string;
+  anomalyId?: string;
+  deadline: Date | string;
+  priority: CorrectiveActionPriority;
+  status: CorrectiveActionStatus;
+  evidenceRequired: string;
+  submittedEvidenceIds?: string[];
+  officerRemarks?: string;
+  assignedOfficerId?: string;
+  resolvedAt?: Date | string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+// 17. Beneficiary Profile & Integrity Registry (Rules 2-8)
+export enum BeneficiaryEligibility {
+  ELIGIBLE = 'ELIGIBLE',
+  UNDER_REVIEW = 'UNDER_REVIEW',
+  INELIGIBLE = 'INELIGIBLE',
+}
+
+export enum BeneficiaryVerificationStatus {
+  VERIFIED = 'VERIFIED',
+  FAILED = 'FAILED',
+  PENDING = 'PENDING',
+}
+
+export interface IBeneficiary {
+  id: string;
+  beneficiaryId: string;
+  name: string;
+  dateOfBirth: string;
+  age: number;
+  guardianName: string;
+  gender: 'MALE' | 'FEMALE' | 'OTHER';
+  category: 'SC' | 'ST' | 'OBC' | 'EWS' | 'GENERAL' | 'PWD';
+  address: string;
+  district: string;
+  state: string;
+  maskedPhone: string;
+  phoneHash: string;
+  organizationId: string;
+  projectId: string;
+  unitId?: string;
+  scheme: string;
+  enrollmentStartDate: string;
+  enrollmentEndDate?: string;
+  eligibilityStatus: BeneficiaryEligibility;
+  verificationStatus: BeneficiaryVerificationStatus;
+  riskLevel: RiskLevel;
+  totalAttendanceSessions?: number;
+  verifiedAttendanceSessions?: number;
+  activeAnomaliesCount?: number;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+// 18. Video Conferencing (Surprise / Random VC Spot-Check)
+export enum VCSessionStatus {
+  SCHEDULED = 'SCHEDULED',
+  INITIATED = 'INITIATED',
+  CONNECTED = 'CONNECTED',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+  FAILED = 'FAILED',
+}
+
+export interface IVCSessionObservation {
+  question: string;
+  response: string;
+  isSatisfactory: boolean;
+}
+
+export interface IVCSession {
+  id: string;
+  sessionCode: string;
+  organizationId: string;
+  projectId: string;
+  initiatedByOfficerId: string;
+  projectInchargeName: string;
+  inchargePhone?: string;
+  status: VCSessionStatus;
+  isSurprise: boolean;
+  scheduledTime?: Date | string;
+  connectedTime?: Date | string;
+  endedTime?: Date | string;
+  reportedStaffCount: number;
+  verifiedStaffCount: number;
+  reportedBeneficiaryCount: number;
+  verifiedBeneficiaryCount: number;
+  observations: IVCSessionObservation[];
+  notes: string;
+  anomalyFlagged?: boolean;
+  recordingUrl?: string;
+  isIntegrationReady: boolean;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+// 19. Explainable Multi-Factor Risk Score Breakdown
+export interface IRiskScoreBreakdown {
+  overallScore: number; // 0 - 100
+  riskBand: RiskLevel;
+  calculatedAt: Date | string;
+  isDecisionSupportOnly: true;
+  categoryBreakdown: {
+    beneficiaryIntegrity: { score: number; max: 30; contributingFactors: string[] };
+    attendance: { score: number; max: 25; contributingFactors: string[] };
+    financial: { score: number; max: 20; contributingFactors: string[] };
+    inspection: { score: number; max: 15; contributingFactors: string[] };
+    compliance: { score: number; max: 10; contributingFactors: string[] };
+  };
+  summaryText: string;
 }
 

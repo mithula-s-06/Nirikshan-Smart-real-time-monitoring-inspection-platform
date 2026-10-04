@@ -1,0 +1,105 @@
+{
+  "profileId": "DOSJE_NATIONAL_STANDARD_V1",
+  "version": "2026.10.v1",
+  "effectiveFrom": "2026-04-01",
+  "effectiveTo": "2027-03-31",
+  "schemeCategory": "RESIDENTIAL_WELFARE_AND_HOSTELS",
+  "description": "Department of Social Justice and Empowerment Standard Anomaly & Attendance Profile",
+  "global": {
+    "ageBounds": { "min": 5, "max": 25 },
+    "serverTimeMaxDriftSeconds": 900,
+    "privacyHmacSalt": "dosje-anonymization-salt-2026",
+    "maskPhones": true,
+    "maskBankAccounts": true
+  },
+  "attendance": {
+    "quality": {
+      "minBlurLaplacianVariance": 50.0,
+      "minBrightness": 45.0,
+      "maxBrightness": 225.0,
+      "minFaceDimensionPx": 30
+    },
+    "session": {
+      "maxSessionWindowMinutes": 15,
+      "geofenceRadiusMeters": 200,
+      "gpsAccuracyAllowanceMeters": 50,
+      "deduplicationCosineThreshold": 0.48,
+      "minVerificationRatioWarning": 0.80,
+      "minVerificationRatioCritical": 0.60,
+      "repeatedLowRatioConsecutiveSessions": 3,
+      "identicalCountsRunLength": 5,
+      "alwaysFullOccupancyThreshold": 0.98,
+      "alwaysFullRunWeeks": 4
+    },
+    "longAbsence": {
+      "consecutiveAbsentWorkingDaysThreshold": 15,
+      "unitLongAbsenceRateThreshold": 0.15
+    }
+  },
+  "registerIntegrity": {
+    "rule2_repeatedFailures": {
+      "windowDays": 60,
+      "minFailures": 3,
+      "multiDocEscalateThreshold": 2,
+      "operatorFailureRateThreshold": 0.60,
+      "excludeReasonCodes": [
+        "TECH_ERR", "TIMEOUT", "AUTH_FAIL", "SERVICE_DOWN", "NETWORK_ERR", "BIOMETRIC_SENSOR_ERR", "SYSTEM_MAINTENANCE"
+      ]
+    },
+    "rule3_inactiveClaims": {
+      "gracePeriodDays": 30,
+      "highRiskExitReasons": ["DEATH", "MIGRATION", "PERMANENT_EXPULSION", "CONFIRMED_FRAUD"]
+    },
+    "rule4_distribution": {
+      "minUnitCount": 15,
+      "tvdThreshold": 0.15,
+      "chiSquareThreshold": 7.81,
+      "knownIntakeEvents": ["NEW_INTAKE_CYCLE", "CRITERIA_EXPANSION", "SANCTION_INCREASE", "ANNUAL_BATCH_ADMISSION"]
+    },
+    "rule5_similarRecords": {
+      "blockingKeys": ["dob", "district_guardian_prefix"],
+      "weights": { "name": 0.40, "dob": 0.25, "guardian": 0.20, "address": 0.15 },
+      "mediumThreshold": 0.72,
+      "highThreshold": 0.86,
+      "twinFirstNameDissimilarityMax": 0.70
+    },
+    "rule6_repeatedContact": {
+      "minUnrelatedBeneficiaries": 2,
+      "institutionalWhitelist": ["9800000000", "9900000000", "9811111111", "9822222222", "1800111222"]
+    },
+    "rule7_dates": {
+      "maxPreEnrollmentVerificationDays": 60
+    },
+    "rule8_transfers": {
+      "windowDays": 180,
+      "maxTransfersInWindow": 3,
+      "minStayDays": 30,
+      "pingPongDays": 90,
+      "academicMonths": [3, 4, 6],
+      "allowedReasons": ["ACADEMIC_PROMOTION", "DISTRICT_REORGANIZATION", "PARENT_TRANSFER", "ANNUAL_SESSION_CHANGE"]
+    }
+  },
+  "finance": {
+    "expenditurePerBeneficiaryMadMultiplier": 2.5,
+    "invoiceDuplicateHammingMax": 3,
+    "headReallocationTolerancePercent": 10.0,
+    "spendingDeadlineDaysFromDisbursal": 30,
+    "invoiceSplittingWindowDays": 7
+  },
+  "inspection": {
+    "minDurationMinutesPer20Beneficiaries": 20,
+    "maxNaPercentage": 0.25,
+    "maxGpsDistanceMeters": 250,
+    "photoClockOffsetToleranceSeconds": 300
+  },
+  "monthly": {
+    "isolationForestContamination": 0.05,
+    "topKReviewUnits": 10,
+    "riskScoreWeights": {
+      "attendance": 0.35,
+      "integrity": 0.25,
+      "finance": 0.25,
+      "inspection": 0.15
+    }
+  }
+}

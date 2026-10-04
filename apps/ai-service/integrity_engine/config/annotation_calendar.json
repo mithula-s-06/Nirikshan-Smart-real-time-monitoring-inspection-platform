@@ -1,0 +1,48 @@
+[
+  {
+    "id": "cal_intake_2026_apr",
+    "eventType": "NEW_INTAKE_CYCLE",
+    "title": "Annual Academic Intake & Batch Admission",
+    "description": "Standard seasonal influx of new beneficiary registrations across residential institutions.",
+    "scope": "ALL",
+    "startDate": "2026-04-01",
+    "endDate": "2026-05-15",
+    "suppressRules": ["RULE_4_UNUSUAL_DISTRIBUTION", "RULE_37_BENEFICIARY_GROWTH"],
+    "dampenRules": ["RULE_38_UNUSUAL_ATTENDANCE_TRENDS"]
+  },
+  {
+    "id": "cal_monsoon_break_2026",
+    "eventType": "NATURAL_DISRUPTION",
+    "title": "Severe Coastal Inundation & Red Weather Alert",
+    "description": "Disaster advisory impacting physical attendance in coastal districts.",
+    "scope": "DISTRICT",
+    "district": "Dakshina Kannada",
+    "startDate": "2026-07-10",
+    "endDate": "2026-07-22",
+    "suppressRules": ["RULE_1_VERIFICATION_RATIO_LOW", "RULE_38_UNUSUAL_ATTENDANCE_TRENDS"],
+    "dampenRules": ["RULE_23_LOCATION_MISMATCH"]
+  },
+  {
+    "id": "cal_exam_2026",
+    "eventType": "BOARD_EXAMS",
+    "title": "Annual Board & Vocational Practical Exams",
+    "description": "Exams causing altered session timing and non-standard schedules.",
+    "scope": "ALL",
+    "startDate": "2026-03-01",
+    "endDate": "2026-03-25",
+    "suppressRules": [],
+    "dampenRules": ["RULE_1_VERIFICATION_RATIO_LOW", "RULE_38_UNUSUAL_ATTENDANCE_TRENDS"]
+  },
+  {
+    "id": "cal_sanction_rev_stjude_2026",
+    "eventType": "SANCTION_INCREASE",
+    "title": "Capacity Expansion Sanction Order #4092",
+    "description": "Approved hostel capacity expansion from 30 to 45 beds.",
+    "scope": "UNIT",
+    "unitId": "unit_st_jude",
+    "startDate": "2026-08-01",
+    "endDate": "2026-12-31",
+    "suppressRules": ["RULE_1_OVER_SANCTION", "RULE_37_BENEFICIARY_GROWTH"],
+    "dampenRules": []
+  }
+]
