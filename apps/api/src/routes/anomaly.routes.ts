@@ -27,6 +27,12 @@ router.post(
   AnomalyController.analyzeDuplicateEvidence,
 );
 
+router.post(
+  '/scan-all',
+  authorize(UserRole.SUPER_ADMIN, UserRole.DEPARTMENT_OFFICIAL, UserRole.PMU_OFFICER, UserRole.INSPECTOR),
+  AnomalyController.scanAllRules,
+);
+
 // Alert Management & Investigation Endpoints
 router.get(
   '/',

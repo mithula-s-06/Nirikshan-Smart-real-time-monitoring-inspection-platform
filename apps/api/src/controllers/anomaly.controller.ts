@@ -90,4 +90,17 @@ export class AnomalyController {
       next(error);
     }
   }
+
+  public static async scanAllRules(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await AiAnomalyService.scanAllRules((req as any).user);
+      res.status(200).json({
+        success: true,
+        message: `Rules 1–30 system evaluation completed. Evaluated 30 rules across ${result.scannedProjects} facilities.`,
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

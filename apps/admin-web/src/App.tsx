@@ -79,6 +79,7 @@ import { ComplianceView } from './components/views/ComplianceView';
 import { BeneficiariesView } from './components/views/BeneficiariesView';
 import { CorrectiveActionsView } from './components/views/CorrectiveActionsView';
 import { VCSurpriseView } from './components/views/VCSurpriseView';
+import { AnomalyEngineView } from './components/views/AnomalyEngineView';
 import { DemoScenarioRunner } from './components/views/DemoScenarioRunner';
 import { NgoDashboard } from './components/roles/NgoDashboard';
 import { InspectorDashboard } from './components/roles/InspectorDashboard';
@@ -529,12 +530,20 @@ export function App() {
       enrichedItem.linkedBeneficiaries = beneficiaries.filter(
         (b) => (b.organizationId?._id || b.organizationId?.id || b.organizationId) === itemId
       );
+    } else if (type === 'anomaly') {
+      const aProjId = item.projectId?._id || item.projectId?.id || item.projectId;
+      const linkedProject = projects.find((p) => (p._id || p.id) === aProjId);
+      enrichedItem.linkedProject = linkedProject;
+      if (linkedProject) {
+        const aOrgId = linkedProject.organizationId?._id || linkedProject.organizationId?.id || linkedProject.organizationId;
+        enrichedItem.linkedOrg = organizations.find((o) => (o._id || o.id) === aOrgId);
+      }
     }
 
     setDrawerType(type);
     setDrawerEntity(enrichedItem);
-    setDrawerTitle(item.name || item.title || item.ngoName || item.beneficiaryId || 'Inspection Dossier');
-    setDrawerSubtitle(item.scheme || item.district || item.orderNumber || item.ruleId || '');
+    setDrawerTitle(item.ruleId ? `${item.ruleId}: ${item.title || item.type}` : (item.name || item.title || item.ngoName || item.beneficiaryId || 'Inspection Dossier'));
+    setDrawerSubtitle(item.reason || item.scheme || item.district || item.orderNumber || item.ruleId || '');
     setDrawerOpen(true);
   };
 
@@ -1237,42 +1246,14 @@ export function App() {
               {/* TAB 8: ANOMALY INTELLIGENCE */}
               {activeTab === 'anomalies' && (
                 hasPermission(Permissions.ANOMALY_VIEW) ? (
-                  <div className="space-y-6">
-                    <div className="p-4 rounded-xl bg-gradient-to-r from-red-950/40 via-slate-900 to-slate-900 border border-red-900/40 flex items-center justify-between">
-                      <div>
-                        <h2 className="text-sm font-bold text-slate-100">Explainable AI Anomaly & Fraud Detection Engine</h2>
-                        <p className="text-xs text-slate-400">
-                          Statistical outliers, isolation forests, and rule-based triggers requiring official human-in-the-loop review.
-                        </p>
-                      </div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800 font-semibold">
-                        DECISION SUPPORT ONLY
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {alerts.map((al) => (
-                        <div
-                          key={al.id}
-                          onClick={() => openEntityDrawer('anomaly', al)}
-                          className="p-5 rounded-xl bg-slate-900 hover:bg-slate-850 border border-slate-800 cursor-pointer transition space-y-3"
-                        >
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <span className="text-[10px] font-mono text-slate-500 uppercase">{al.source || 'AI SERVICE'}</span>
-                              <h3 className="text-sm font-bold text-slate-100 mt-0.5">{al.title}</h3>
-                            </div>
-                            <StatusBadge status={al.severity} type="risk" />
-                          </div>
-                          <p className="text-xs text-slate-300 leading-relaxed">{al.reason}</p>
-                          <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-800">
-                            <StatusBadge status={al.status} />
-                            <span className="text-indigo-400 font-bold hover:underline">Adjudicate Anomaly &rarr;</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <AnomalyEngineView
+                    alerts={alerts}
+                    projects={projects}
+                    authToken={authToken}
+                    onRefreshAlerts={fetchAlerts}
+                    onSelectAlert={(al) => openEntityDrawer('anomaly', al)}
+                    onSelectProject={(proj) => openEntityDrawer('project', proj)}
+                  />
                 ) : (
                   <AccessDenied
                     requiredPermission={Permissions.ANOMALY_VIEW}

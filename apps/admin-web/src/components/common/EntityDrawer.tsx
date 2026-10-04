@@ -665,30 +665,158 @@ export const EntityDrawer: React.FC<EntityDrawerProps> = ({
           {/* Entity: Anomaly Alert */}
           {entityType === 'anomaly' && (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-red-950/20 border border-red-900/50 space-y-2">
-                <div className="flex items-center gap-2 text-red-400 font-semibold text-xs uppercase tracking-wide">
-                  <ShieldAlert className="w-4 h-4" />
-                  <span>Detection Signal: {data.type || data.ruleId}</span>
+              {/* Alert Header Banner */}
+              <div className={`p-4 rounded-xl border space-y-2 ${
+                data.severity === 'CRITICAL'
+                  ? 'bg-rose-950/30 border-rose-900/60'
+                  : data.severity === 'HIGH'
+                  ? 'bg-amber-950/30 border-amber-900/60'
+                  : 'bg-indigo-950/30 border-indigo-900/60'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 font-mono text-xs font-bold text-rose-400 uppercase tracking-wide">
+                    <ShieldAlert className="w-4 h-4" />
+                    <span>{data.ruleId || 'RULE-DETECTION'} &bull; {data.type || 'SYSTEM_ANOMALY'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <StatusBadge status={data.severity} type="risk" />
+                    <StatusBadge status={data.status || 'OPEN'} />
+                  </div>
                 </div>
-                <p className="text-slate-200 text-xs leading-relaxed">{data.reason || data.description}</p>
+                <h3 className="text-sm font-bold text-slate-100">{data.title || data.type}</h3>
+                <p className="text-xs text-slate-300 leading-relaxed">{data.reason || data.description}</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 text-xs">
-                <div>
-                  <span className="text-slate-500 block">Detection Source</span>
-                  <span className="font-mono text-slate-200">{data.source || 'AI_SERVICE & RULE_ENGINE'}</span>
+              {/* Linked Project / Monitored Facility */}
+              {data.linkedProject && (
+                <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-400 font-medium flex items-center gap-1.5">
+                      <Building className="w-3.5 h-3.5 text-indigo-400" /> Monitored Facility
+                    </span>
+                    <button
+                      onClick={() => onAction && onAction('SWITCH_ENTITY', { type: 'project', entity: data.linkedProject })}
+                      className="text-[11px] text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 hover:underline"
+                    >
+                      View Facility Dossier <ExternalLink className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <div className="text-sm font-semibold text-slate-200">{data.linkedProject.name}</div>
+                  <div className="text-xs text-slate-400 font-mono">
+                    {data.linkedProject.code} &bull; {data.linkedProject.district}, {data.linkedProject.state}
+                  </div>
+                  {data.linkedOrg && (
+                    <div className="text-[11px] text-slate-500 pt-1 border-t border-slate-800/80">
+                      Operated by: <span className="text-slate-300 font-medium">{data.linkedOrg.name}</span>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <span className="text-slate-500 block">Confidence</span>
-                  <span className="font-mono text-slate-200">{Math.round((data.confidence || 0.92) * 100)}%</span>
+              )}
+
+              {/* Detection Telemetry & Metrics */}
+              <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                  <Radio className="w-3.5 h-3.5 text-emerald-400" /> Detection Telemetry & Confidence
+                </h4>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-slate-500 block">Detection Engine</span>
+                    <span className="font-mono text-slate-200">{data.source || 'AI_SERVICE & RULES_1_30'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block">Statistical Confidence</span>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-indigo-500 to-rose-500 rounded-full"
+                          style={{ width: `${Math.min(100, Math.round((data.confidence || 0.92) * 100))}%` }}
+                        />
+                      </div>
+                      <span className="font-mono font-bold text-slate-200">
+                        {Math.round((data.confidence || 0.92) * 100)}%
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block">Detected Timestamp</span>
+                    <span className="text-slate-200 font-mono text-[11px]">
+                      {data.createdAt ? new Date(data.createdAt).toLocaleString() : 'Recent Live Cycle'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block">Trigger Criteria</span>
+                    <span className="text-slate-200 font-mono text-[11px]">
+                      {data.metadata?.ruleCategory || data.ruleId || 'Threshold Outlier (>2.5 sigma)'}
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-slate-500 block">Detected At</span>
-                  <span className="text-slate-200">{data.createdAt ? new Date(data.createdAt).toLocaleString() : 'Recent'}</span>
+
+                {data.metadata && Object.keys(data.metadata).length > 0 && (
+                  <div className="pt-2 border-t border-slate-800/80">
+                    <span className="text-slate-500 text-[11px] block mb-1 font-mono uppercase">Telemetry Payload:</span>
+                    <div className="p-2 rounded bg-slate-900/90 font-mono text-[11px] text-slate-300 space-y-1 overflow-x-auto">
+                      {Object.entries(data.metadata).map(([k, v]) => (
+                        <div key={k} className="flex justify-between gap-4">
+                          <span className="text-slate-400">{k}:</span>
+                          <span className="text-emerald-400">{typeof v === 'object' ? JSON.stringify(v) : String(v)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Statutory Recommendation */}
+              <div className="p-3.5 rounded-xl bg-indigo-950/20 border border-indigo-900/40 text-xs space-y-1.5">
+                <span className="font-bold text-indigo-300 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Statutory Standard Operating Procedure (SOP)
+                </span>
+                <p className="text-slate-300 leading-relaxed text-[11px]">
+                  Under DoSJE Scheme Guidelines Section 8.4, verified anomalies exceeding 85% statistical confidence mandate immediate field cross-verification, physical head-count verification, or formal Show-Cause Directives prior to release of subsequent milestone tranches.
+                </p>
+              </div>
+
+              {/* Human-in-the-Loop Adjudication Action Panel */}
+              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
+                    <CheckSquare className="w-3.5 h-3.5 text-emerald-400" /> Official Adjudication Actions
+                  </h4>
+                  <span className="text-[10px] text-slate-400 font-mono">HUMAN-IN-THE-LOOP</span>
                 </div>
-                <div>
-                  <span className="text-slate-500 block">Investigation Status</span>
-                  <StatusBadge status={data.status || 'OPEN'} />
+                <p className="text-[11px] text-slate-400">
+                  Select an official enforcement action to record your decision in the tamper-evident audit ledger.
+                </p>
+
+                <div className="grid grid-cols-2 gap-2.5 pt-1">
+                  <button
+                    onClick={() => onAction && onAction('VERIFY', { id: data._id || data.id })}
+                    className="p-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-950/40"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    Verify Authentic
+                  </button>
+                  <button
+                    onClick={() => onAction && onAction('DISMISS', { id: data._id || data.id })}
+                    className="p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs border border-slate-700 transition flex items-center justify-center gap-1.5"
+                  >
+                    <X className="w-4 h-4" />
+                    Dismiss False Positive
+                  </button>
+                  <button
+                    onClick={() => onAction && onAction('SURPRISE_INSPECTION', data)}
+                    className="p-2.5 rounded-lg bg-purple-600/90 hover:bg-purple-500 text-white font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-purple-950/40"
+                  >
+                    <ClipboardCheck className="w-4 h-4" />
+                    Dispatch Inspection
+                  </button>
+                  <button
+                    onClick={() => onAction && onAction('CORRECTIVE_ACTION', data)}
+                    className="p-2.5 rounded-lg bg-amber-600/90 hover:bg-amber-500 text-white font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-amber-950/40"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Issue Directive
+                  </button>
                 </div>
               </div>
             </div>
