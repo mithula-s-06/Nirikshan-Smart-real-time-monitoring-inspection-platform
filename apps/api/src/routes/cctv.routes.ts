@@ -5,8 +5,11 @@ import { UserRole } from '@nirikshan/shared-types';
 
 const router = Router();
 
-// Stream feed endpoint can be accessed directly or with auth token
+// Stream feed endpoint and mobile proxy can be accessed directly
 router.get('/cameras/:id/live-feed', CCTVController.getLiveFeed);
+router.get('/mobile-stream', CCTVController.getMobileStream);
+router.get('/config', CCTVController.getConfig);
+router.post('/config', CCTVController.updateConfig);
 
 // Protect all remaining CCTV configuration & playback token endpoints
 router.use(authenticate);

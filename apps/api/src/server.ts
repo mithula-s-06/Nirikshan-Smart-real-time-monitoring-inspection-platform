@@ -1,14 +1,37 @@
 import http from 'http';
+import mongoose from 'mongoose';
 import { createApp } from './app';
 import { env } from './config/env';
 import { connectDatabase, disconnectDatabase } from './config/database';
 import { initializeSocketServer } from './socket/socket.server';
 import { logger } from './utils/logger';
+import { User } from './models/user.model';
+import { Beneficiary } from './models/beneficiary.model';
+import { seedData } from './seed/seed';
+import { seedExtensions } from './seed/seedExtensions';
 
 async function bootstrap() {
   try {
     // 1. Connect to Database (MongoDB or In-Memory fallback for seamless dev)
     await connectDatabase();
+
+    // Auto-seed if database is connected and empty (e.g. fresh MongoDB or in-memory MongoDB)
+    if (mongoose.connection.readyState === 1) {
+      try {
+        const userCount = await User.countDocuments();
+        if (userCount === 0) {
+          logger.info('🌱 Empty database detected. Auto-seeding core demo data...');
+          await seedData();
+        }
+        const benCount = await Beneficiary.countDocuments();
+        if (benCount === 0) {
+          logger.info('🌱 Seeding extended intelligence data (beneficiaries, VC sessions, gazette)...');
+          await seedExtensions();
+        }
+      } catch (seedErr: any) {
+        logger.warn(`Could not auto-seed data: ${seedErr.message}`);
+      }
+    }
 
     // 2. Initialize Express application & Socket.IO Telemetry Server
     const app = createApp();

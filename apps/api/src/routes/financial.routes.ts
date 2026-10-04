@@ -8,7 +8,11 @@ const router = Router();
 router.use(authenticate);
 
 router.get('/', FinancialController.getFinancialRecords);
+router.post('/', FinancialController.createFinancialRecord);
+router.post('/seed-all', FinancialController.seedAllProjects);
 router.get('/project/:projectId', FinancialController.getFinancialRecordByProject);
 router.post('/audit', FinancialController.runFinancialAudit);
+router.post('/:id/invoices', FinancialController.addInvoice);
+router.post('/project/:projectId/invoices', FinancialController.addInvoiceByProject);
 
 export default router;

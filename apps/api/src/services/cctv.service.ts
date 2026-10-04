@@ -208,7 +208,11 @@ export class CCTVService {
       .update(tokenPayload)
       .digest('hex');
 
-    const playbackUrl = `/api/v1/cctv/cameras/${camera.id}/live-feed?token=${token}&expires=${expiresAt.getTime()}`;
+    let playbackUrl = `/api/v1/cctv/cameras/${camera.id}/live-feed?token=${token}&expires=${expiresAt.getTime()}`;
+    const rawUrl = camera.rawStreamUrl || (camera.code.includes('MOB') ? (process.env.MOBILE_CCTV_STREAM_URL || 'http://192.168.1.100:8080/video') : '');
+    if (rawUrl && (rawUrl.startsWith('http://') || rawUrl.startsWith('https://'))) {
+      playbackUrl = `/api/v1/cctv/mobile-stream?url=${encodeURIComponent(rawUrl)}&token=${token}&expires=${expiresAt.getTime()}`;
+    }
 
     if (actor) {
       await recordAudit({
@@ -240,6 +244,7 @@ export class CCTVService {
       fps: camera.fps,
       isDemo: camera.isDemo,
       playbackUrl,
+      rawStreamUrl: rawUrl || undefined,
       token,
       expiresAt: expiresAt.toISOString(),
     };

@@ -43,7 +43,9 @@ import {
   History,
   Coins,
   CheckSquare,
-  Shield
+  Shield,
+  Plus,
+  Building
 } from 'lucide-react';
 import {
   HealthStatus,
@@ -82,6 +84,10 @@ import { NgoDashboard } from './components/roles/NgoDashboard';
 import { InspectorDashboard } from './components/roles/InspectorDashboard';
 import { BeneficiaryDashboard } from './components/roles/BeneficiaryDashboard';
 import { ArchitectureModal } from './components/common/ArchitectureModal';
+import { CameraStreamModal } from './components/common/CameraStreamModal';
+import { AddOrganizationModal } from './components/modals/AddOrganizationModal';
+import { AddProjectModal } from './components/modals/AddProjectModal';
+import { InstitutionsView } from './components/views/InstitutionsView';
 
 // @ts-ignore
 import DataIntegrityWorkspace from './components/attendance/DataIntegrityWorkspace.jsx';
@@ -162,6 +168,15 @@ export function App() {
   const [vcSessions, setVcSessions] = useState<any[]>([]);
   const [vcStats, setVcStats] = useState<any>(null);
 
+  // Organizations state
+  const [organizations, setOrganizations] = useState<any[]>([]);
+  const [organizationsLoading, setOrganizationsLoading] = useState<boolean>(false);
+
+  // Add NGO & Project modal states
+  const [addOrgModalOpen, setAddOrgModalOpen] = useState<boolean>(false);
+  const [addProjectModalOpen, setAddProjectModalOpen] = useState<boolean>(false);
+  const [addProjectDefaultOrgId, setAddProjectDefaultOrgId] = useState<string | undefined>(undefined);
+
   // Global search & filters
   const [globalSearch, setGlobalSearch] = useState<string>('');
   const [stateFilter, setStateFilter] = useState<string>('');
@@ -171,7 +186,7 @@ export function App() {
   // Slide-over Entity Drawer state
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const [drawerEntity, setDrawerEntity] = useState<any | null>(null);
-  const [drawerType, setDrawerType] = useState<'project' | 'beneficiary' | 'anomaly' | 'inspection' | 'compliance'>('project');
+  const [drawerType, setDrawerType] = useState<'project' | 'beneficiary' | 'anomaly' | 'inspection' | 'compliance' | 'organization'>('project');
   const [drawerTitle, setDrawerTitle] = useState<string>('');
   const [drawerSubtitle, setDrawerSubtitle] = useState<string>('');
 
@@ -443,6 +458,24 @@ export function App() {
     }
   };
 
+  const fetchOrganizations = async (token?: string) => {
+    setOrganizationsLoading(true);
+    const tokenToUse = token || authToken;
+    try {
+      const res = await fetch('/api/v1/organizations', {
+        headers: tokenToUse ? { Authorization: `Bearer ${tokenToUse}` } : {},
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setOrganizations(data.data?.organizations || []);
+      }
+    } catch (err) {
+      console.warn('Fetch organizations error:', err);
+    } finally {
+      setOrganizationsLoading(false);
+    }
+  };
+
   const fetchProjectRiskBreakdown = async (projectId: string) => {
     try {
       const res = await fetch(`/api/v1/risk/project/${projectId}`, {
@@ -460,16 +493,44 @@ export function App() {
   };
 
   // Open Entity Detail Drawer
-  const openEntityDrawer = async (type: 'project' | 'beneficiary' | 'anomaly' | 'inspection' | 'compliance', item: any) => {
+  const openEntityDrawer = async (type: 'project' | 'beneficiary' | 'anomaly' | 'inspection' | 'compliance' | 'organization', item: any) => {
     let enrichedItem = { ...item };
-    if (type === 'project' && (item.id || item._id)) {
-      const pId = item.id || item._id;
-      const riskBreakdown = projectRiskCache[pId] || (await fetchProjectRiskBreakdown(pId));
+    const itemId = item._id || item.id;
+
+    if (type === 'project' && itemId) {
+      const riskBreakdown = projectRiskCache[itemId] || (await fetchProjectRiskBreakdown(itemId));
       enrichedItem.riskBreakdown = riskBreakdown;
-      const projCams = cameras.filter((c) => c.projectId === pId || c.projectId?._id === pId);
+      const projCams = cameras.filter((c) => c.projectId === itemId || c.projectId?._id === itemId);
       enrichedItem.cameras = projCams.length > 0 ? projCams : cameras.slice(0, 5);
-      enrichedItem.beneficiaries = beneficiaries.length > 0 ? beneficiaries : [];
+      const projBens = beneficiaries.filter((b) => (b.projectId?._id || b.projectId?.id || b.projectId) === itemId);
+      enrichedItem.beneficiaries = projBens.length > 0 ? projBens : beneficiaries.slice(0, 5);
+      const matchedOrg =
+        item.organizationId && typeof item.organizationId === 'object'
+          ? item.organizationId
+          : organizations.find((o) => (o._id || o.id) === item.organizationId);
+      if (matchedOrg) enrichedItem.organizationId = matchedOrg;
+
+      // Attach matching financial record to project dossier
+      const matchedFin = financialRecords.find(
+        (f) => (f.projectId?.id || f.projectId?._id || f.projectId) === itemId
+      );
+      if (matchedFin) enrichedItem.financialRecord = matchedFin;
+    } else if (type === 'beneficiary') {
+      const bProjId = item.projectId?._id || item.projectId?.id || item.projectId;
+      const linkedProject = projects.find((p) => (p._id || p.id) === bProjId);
+      const bOrgId = item.organizationId?._id || item.organizationId?.id || item.organizationId || linkedProject?.organizationId?._id || linkedProject?.organizationId;
+      const linkedOrg = organizations.find((o) => (o._id || o.id) === bOrgId);
+      enrichedItem.linkedProject = linkedProject;
+      enrichedItem.linkedOrg = linkedOrg;
+    } else if (type === 'organization' && itemId) {
+      enrichedItem.linkedProjects = projects.filter(
+        (p) => (p.organizationId?._id || p.organizationId?.id || p.organizationId) === itemId
+      );
+      enrichedItem.linkedBeneficiaries = beneficiaries.filter(
+        (b) => (b.organizationId?._id || b.organizationId?.id || b.organizationId) === itemId
+      );
     }
+
     setDrawerType(type);
     setDrawerEntity(enrichedItem);
     setDrawerTitle(item.name || item.title || item.ngoName || item.beneficiaryId || 'Inspection Dossier');
@@ -479,7 +540,11 @@ export function App() {
 
   // Human in the Loop Actions
   const handleDrawerAction = async (action: string, payload: any) => {
-    if (action === 'VERIFY') {
+    if (action === 'SWITCH_ENTITY') {
+      if (payload?.type && payload?.entity) {
+        openEntityDrawer(payload.type, payload.entity);
+      }
+    } else if (action === 'VERIFY') {
       try {
         await fetch(`/api/v1/anomalies/alerts/${payload.id}/status`, {
           method: 'PATCH',
@@ -514,16 +579,22 @@ export function App() {
 
   const handleRunFinancialAudit = async (projectId: string) => {
     try {
-      await fetch('/api/v1/financial/audit', {
+      const res = await fetch('/api/v1/financial/audit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
         body: JSON.stringify({ projectId }),
       });
       fetchFinancials();
       fetchProjects();
+      fetchAlerts();
+      if (res.ok) {
+        const data = await res.json();
+        return data.data;
+      }
     } catch (err) {
-      console.error(err);
+      console.error('Audit run error:', err);
     }
+    return null;
   };
 
   const handleInitiateSurpriseVC = async (vcData: any) => {
@@ -622,6 +693,7 @@ export function App() {
     if (!authToken) return;
     fetchHealth();
     fetchProjects(authToken);
+    fetchOrganizations(authToken);
     fetchInspections(authToken);
     fetchAlerts(authToken);
     fetchCameras(authToken);
@@ -970,49 +1042,18 @@ export function App() {
               {/* TAB 3: INSTITUTIONS DIRECTORY */}
               {activeTab === 'institutions' && (
                 hasPermission(Permissions.INSTITUTION_VIEW) ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-sm font-bold text-slate-100">Monitored Institutional Facilities Directory</h2>
-                      <span className="text-xs font-mono text-slate-400">{projects.length} institutions</span>
-                    </div>
-
-                    <div className="rounded-xl bg-slate-900/90 border border-slate-800 overflow-hidden">
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs">
-                          <thead className="bg-slate-950 text-slate-400 border-b border-slate-800 font-mono uppercase text-[11px]">
-                            <tr>
-                              <th className="p-3.5">Institution Name</th>
-                              <th className="p-3.5">Code</th>
-                              <th className="p-3.5">Scheme</th>
-                              <th className="p-3.5">Location</th>
-                              <th className="p-3.5">Geofence</th>
-                              <th className="p-3.5">Risk Score</th>
-                              <th className="p-3.5">Status</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-800 text-slate-300">
-                            {projects.map((p) => (
-                              <tr
-                                key={p.id || p._id}
-                                onClick={() => openEntityDrawer('project', p)}
-                                className="hover:bg-slate-800/40 transition cursor-pointer"
-                              >
-                                <td className="p-3.5 font-semibold text-slate-100">{p.name}</td>
-                                <td className="p-3.5 font-mono text-slate-400">{p.code}</td>
-                                <td className="p-3.5">{p.scheme}</td>
-                                <td className="p-3.5">{p.district}, {p.state}</td>
-                                <td className="p-3.5 font-mono">{p.geofenceRadiusMeters || 250}m</td>
-                                <td className="p-3.5 font-mono font-bold text-amber-400">{p.riskScore || 25}/100</td>
-                                <td className="p-3.5">
-                                  <StatusBadge status={p.status} />
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
+                  <InstitutionsView
+                    organizations={organizations}
+                    projects={projects}
+                    beneficiaries={beneficiaries}
+                    onSelectOrganization={(org: any) => openEntityDrawer('organization', org)}
+                    onSelectProject={(proj: any) => openEntityDrawer('project', proj)}
+                    onOpenAddOrgModal={() => setAddOrgModalOpen(true)}
+                    onOpenAddProjectModal={(orgId?: string) => {
+                      setAddProjectDefaultOrgId(orgId);
+                      setAddProjectModalOpen(true);
+                    }}
+                  />
                 ) : (
                   <AccessDenied
                     requiredPermission={Permissions.INSTITUTION_VIEW}
@@ -1025,28 +1066,56 @@ export function App() {
               {activeTab === 'projects' && (
                 hasPermission(Permissions.PROJECT_VIEW) ? (
                   <div className="space-y-4">
-                    <h2 className="text-sm font-bold text-slate-100">Infrastructure Projects & Geofenced Schemes</h2>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-sm font-bold text-slate-100">Infrastructure Projects & Geofenced Facilities</h2>
+                        <p className="text-xs text-slate-400">Total {projects.length} scheme facilities with perimeter fencing</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setAddProjectDefaultOrgId(undefined);
+                          setAddProjectModalOpen(true);
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs flex items-center gap-1.5 transition shadow-lg shadow-emerald-950/40"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> + Add Project Facility
+                      </button>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {projects.map((p) => (
-                        <div
-                          key={p.id || p._id}
-                          onClick={() => openEntityDrawer('project', p)}
-                          className="p-5 rounded-xl bg-slate-900 hover:bg-slate-850 border border-slate-800 cursor-pointer transition space-y-3"
-                        >
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <span className="text-[10px] font-mono text-slate-500 uppercase">{p.code}</span>
-                              <h3 className="text-sm font-bold text-slate-100 mt-0.5">{p.name}</h3>
+                      {projects.map((p) => {
+                        const linkedOrg = organizations.find(
+                          (o) => (o._id || o.id) === (p.organizationId?._id || p.organizationId?.id || p.organizationId)
+                        ) || (typeof p.organizationId === 'object' ? p.organizationId : null);
+                        return (
+                          <div
+                            key={p.id || p._id}
+                            onClick={() => openEntityDrawer('project', p)}
+                            className="p-5 rounded-xl bg-slate-900 hover:bg-slate-850 border border-slate-800 cursor-pointer transition space-y-3"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <span className="text-[10px] font-mono text-slate-500 uppercase">{p.code}</span>
+                                <h3 className="text-sm font-bold text-slate-100 mt-0.5">{p.name}</h3>
+                              </div>
+                              <StatusBadge status={p.riskLevel} type="risk" />
                             </div>
-                            <StatusBadge status={p.riskLevel} type="risk" />
+                            <p className="text-xs text-slate-400 line-clamp-2">{p.description}</p>
+                            
+                            {linkedOrg && (
+                              <div className="flex items-center gap-1.5 text-xs text-indigo-300 bg-indigo-950/40 px-2.5 py-1.5 rounded-lg border border-indigo-900/40">
+                                <Building className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
+                                <span className="truncate">Implementing NGO: <span className="font-semibold text-slate-200">{linkedOrg.name}</span></span>
+                              </div>
+                            )}
+
+                            <div className="grid grid-cols-2 gap-2 text-xs font-mono text-slate-300 bg-slate-950 p-2.5 rounded-lg border border-slate-800/80">
+                              <div>State: {p.state}</div>
+                              <div>Radius: {p.geofenceRadiusMeters || 250}m</div>
+                            </div>
                           </div>
-                          <p className="text-xs text-slate-400 line-clamp-2">{p.description}</p>
-                          <div className="grid grid-cols-2 gap-2 text-xs font-mono text-slate-300 bg-slate-950 p-2.5 rounded-lg border border-slate-800/80">
-                            <div>State: {p.state}</div>
-                            <div>Radius: {p.geofenceRadiusMeters || 250}m</div>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 ) : (
@@ -1062,12 +1131,16 @@ export function App() {
                 hasPermission(Permissions.BENEFICIARY_VIEW) ? (
                   <BeneficiariesView
                     beneficiaries={beneficiaries}
+                    projects={projects}
+                    organizations={organizations}
                     stats={beneficiaryStats}
                     loading={false}
                     onSearch={(q) => fetchBeneficiaries(q)}
                     onFilterEligibility={(el) => fetchBeneficiaries('', el)}
                     onFilterRisk={(rk) => fetchBeneficiaries('', '', rk)}
                     onSelectBeneficiary={(b) => openEntityDrawer('beneficiary', b)}
+                    onSelectProject={(proj) => openEntityDrawer('project', proj)}
+                    onSelectOrganization={(org) => openEntityDrawer('organization', org)}
                   />
                 ) : (
                   <AccessDenied
@@ -1217,6 +1290,7 @@ export function App() {
                     onRunAudit={handleRunFinancialAudit}
                     onSelectProject={(p) => openEntityDrawer('project', p)}
                     loading={false}
+                    onRefresh={fetchFinancials}
                   />
                 ) : (
                   <AccessDenied
@@ -1465,6 +1539,38 @@ export function App() {
       <PersonaSwitcherModal
         isOpen={personaSwitcherOpen}
         onClose={() => setPersonaSwitcherOpen(false)}
+      />
+
+      {/* CCTV Live Stream Modal with AI HUD & Evidence Hashing */}
+      <CameraStreamModal
+        isOpen={cameraModalOpen}
+        camera={selectedCamera}
+        streamUrl={cameraStreamUrl}
+        onClose={() => setCameraModalOpen(false)}
+      />
+
+      {/* Add NGO / Implementing Partner Modal */}
+      <AddOrganizationModal
+        isOpen={addOrgModalOpen}
+        onClose={() => setAddOrgModalOpen(false)}
+        authToken={authToken}
+        onSuccess={() => {
+          fetchOrganizations();
+          fetchProjects();
+        }}
+      />
+
+      {/* Add Project Facility Modal */}
+      <AddProjectModal
+        isOpen={addProjectModalOpen}
+        onClose={() => setAddProjectModalOpen(false)}
+        organizations={organizations}
+        defaultOrgId={addProjectDefaultOrgId}
+        authToken={authToken}
+        onSuccess={() => {
+          fetchProjects();
+          fetchOrganizations();
+        }}
       />
     </div>
   );

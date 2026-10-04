@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Video, ShieldAlert, CheckCircle, AlertTriangle, Phone, Radio, Users, Play, Sparkles } from 'lucide-react';
+import { Video, ShieldAlert, CheckCircle, AlertTriangle, Phone, Radio, Users, Play, Sparkles, Building, Camera, Eye, Smartphone, Wifi, Settings } from 'lucide-react';
 import { StatusBadge } from '../common/StatusBadge';
 
 interface VCSurpriseViewProps {
@@ -32,6 +32,37 @@ export const VCSurpriseView: React.FC<VCSurpriseViewProps> = ({
   const [q3, setQ3] = useState(true);
   const [vcNotes, setVcNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Mobile camera configuration state
+  const defaultEnvUrl = (import.meta as any).env?.VITE_MOBILE_CCTV_STREAM_URL || 'http://10.146.163.75:8080/video';
+  const [mobileUrl, setMobileUrl] = useState<string>(() => {
+    return localStorage.getItem('nirikshan_mobile_cctv_url') || defaultEnvUrl;
+  });
+  const [editingMobileUrl, setEditingMobileUrl] = useState(false);
+  const [tempMobileUrl, setTempMobileUrl] = useState(mobileUrl);
+
+  const handleSaveMobileUrl = () => {
+    let trimmed = tempMobileUrl.trim().replace(/\/+$/, '');
+    if (!trimmed) return;
+    try {
+      const parsed = new URL(trimmed);
+      if (!parsed.pathname || parsed.pathname === '/' || parsed.pathname === '') {
+        parsed.pathname = '/video';
+      }
+      trimmed = parsed.toString();
+    } catch (e) {
+      if (!trimmed.includes('/', 8)) trimmed += '/video';
+    }
+    setMobileUrl(trimmed);
+    setTempMobileUrl(trimmed);
+    localStorage.setItem('nirikshan_mobile_cctv_url', trimmed);
+    setEditingMobileUrl(false);
+    fetch('/api/v1/cctv/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mobileStreamUrl: trimmed }),
+    }).catch(console.warn);
+  };
 
   const handleLaunchVC = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,6 +144,69 @@ export const VCSurpriseView: React.FC<VCSurpriseViewProps> = ({
         </div>
       </div>
 
+      {/* Mobile IP Camera Quick Config Banner */}
+      <div className="p-4 rounded-xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-800/40 text-xs">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <Smartphone className="w-5 h-5 text-amber-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-100">Live Mobile Camera Integration (Android IP Webcam)</span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-semibold">
+                  WI-FI LIVE STREAM READY
+                </span>
+              </div>
+              <p className="text-slate-400 text-[11px] mt-0.5">
+                Connect your Android phone to the same Wi-Fi, run <em>IP Webcam</em>, and stream live inspection video directly into this console.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {!editingMobileUrl ? (
+              <>
+                <code className="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 font-mono text-[11px] text-amber-300">
+                  {mobileUrl}
+                </code>
+                <button
+                  onClick={() => {
+                    setTempMobileUrl(mobileUrl);
+                    setEditingMobileUrl(true);
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs flex items-center gap-1.5 transition border border-slate-700"
+                >
+                  <Settings className="w-3.5 h-3.5" /> Change Phone IP
+                </button>
+              </>
+            ) : (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={tempMobileUrl}
+                  onChange={(e) => setTempMobileUrl(e.target.value)}
+                  placeholder="http://192.168.1.100:8080/video"
+                  className="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-slate-100 font-mono text-xs focus:outline-none focus:border-amber-500 w-64"
+                />
+                <button
+                  onClick={handleSaveMobileUrl}
+                  className="px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium text-xs transition"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => setEditingMobileUrl(false)}
+                  className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 text-xs transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* CCTV Feeds Matrix */}
       <div className="rounded-xl bg-slate-900/90 border border-slate-800 overflow-hidden">
         <div className="p-4 border-b border-slate-800 flex items-center justify-between">
@@ -123,47 +217,69 @@ export const VCSurpriseView: React.FC<VCSurpriseViewProps> = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
-          {cameras.map((cam, idx) => (
-            <div key={cam.id || idx} className="p-4 rounded-xl bg-slate-950/70 border border-slate-800 space-y-3">
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="font-semibold text-slate-100 text-xs">{cam.name}</div>
-                  <div className="text-[10px] text-slate-500 font-mono mt-0.5">{cam.code} &bull; {cam.locationDescription}</div>
+          {cameras.map((cam, idx) => {
+            const isMob = cam.code?.includes('MOB') || cam.protocol === 'MJPEG' || cam.protocol === 'HTTP';
+            return (
+              <div
+                key={cam.id || idx}
+                className={`p-4 rounded-xl bg-slate-950/70 border space-y-3 transition ${
+                  isMob ? 'border-amber-700/60 shadow-lg shadow-amber-950/20' : 'border-slate-800'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5 font-semibold text-slate-100 text-xs">
+                      {isMob && <Smartphone className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />}
+                      <span>{cam.name}</span>
+                    </div>
+                    <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                      {cam.code} &bull; {cam.locationDescription}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {isMob && (
+                      <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 font-bold uppercase">
+                        MOBILE
+                      </span>
+                    )}
+                    <StatusBadge status={cam.status} />
+                  </div>
                 </div>
-                <StatusBadge status={cam.status} />
-              </div>
 
-              {/* Simulation Screen Frame */}
-              <div className="aspect-video rounded-lg bg-slate-900 border border-slate-800 flex flex-col items-center justify-center p-3 text-center relative overflow-hidden">
-                <Radio className={`w-6 h-6 mb-1 ${cam.status === 'ONLINE' ? 'text-emerald-400 animate-pulse' : 'text-slate-600'}`} />
-                <span className="text-[11px] font-mono text-slate-400">
-                  {cam.status === 'ONLINE' ? 'Proxy Stream Ready' : 'Feed Offline / Maintenance'}
-                </span>
-                <span className="text-[9px] font-mono text-slate-500 mt-0.5 uppercase tracking-wider">
-                  {cam.protocol} &bull; {cam.resolution || '1080p'} &bull; {cam.fps || 25}fps
-                </span>
-              </div>
+                {/* Simulation Screen Frame */}
+                <div className="aspect-video rounded-lg bg-slate-900 border border-slate-800 flex flex-col items-center justify-center p-3 text-center relative overflow-hidden">
+                  <Radio className={`w-6 h-6 mb-1 ${cam.status === 'ONLINE' ? (isMob ? 'text-amber-400 animate-pulse' : 'text-emerald-400 animate-pulse') : 'text-slate-600'}`} />
+                  <span className="text-[11px] font-mono text-slate-400">
+                    {isMob ? 'Live Phone Camera Feed' : cam.status === 'ONLINE' ? 'Proxy Stream Ready' : 'Feed Offline / Maintenance'}
+                  </span>
+                  <span className="text-[9px] font-mono text-slate-500 mt-0.5 uppercase tracking-wider">
+                    {cam.protocol} &bull; {cam.resolution || '1080p'} &bull; {cam.fps || 25}fps
+                  </span>
+                </div>
 
-              {/* Action Buttons: Live Stream & Building Dossier */}
-              <div className="flex items-center gap-2 pt-1">
-                <button
-                  onClick={() => onOpenStreamModal ? onOpenStreamModal(cam) : null}
-                  className="flex-1 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs flex items-center justify-center gap-1.5 transition"
-                >
-                  <Video className="w-3.5 h-3.5" /> Live Stream
-                </button>
-                <button
-                  onClick={() => {
-                    const matchedProj = projects.find((p) => p.id === cam.projectId || p._id === cam.projectId) || projects[0];
-                    if (onSelectProject && matchedProj) onSelectProject(matchedProj);
-                  }}
-                  className="flex-1 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs flex items-center justify-center gap-1.5 transition border border-slate-700"
-                >
-                  <Building className="w-3.5 h-3.5 text-indigo-400" /> Building Dossier
-                </button>
+                {/* Action Buttons: Live Stream & Building Dossier */}
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    onClick={() => onOpenStreamModal ? onOpenStreamModal(cam) : null}
+                    className={`flex-1 py-1.5 rounded-lg text-white font-medium text-xs flex items-center justify-center gap-1.5 transition ${
+                      isMob ? 'bg-amber-600 hover:bg-amber-500' : 'bg-sky-600 hover:bg-sky-500'
+                    }`}
+                  >
+                    <Video className="w-3.5 h-3.5" /> Live Stream
+                  </button>
+                  <button
+                    onClick={() => {
+                      const matchedProj = projects.find((p) => p.id === cam.projectId || p._id === cam.projectId) || projects[0];
+                      if (onSelectProject && matchedProj) onSelectProject(matchedProj);
+                    }}
+                    className="flex-1 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs flex items-center justify-center gap-1.5 transition border border-slate-700"
+                  >
+                    <Building className="w-3.5 h-3.5 text-indigo-400" /> Building Dossier
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

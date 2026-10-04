@@ -19,7 +19,9 @@ import {
   Layers,
   ArrowUpRight,
   ShieldCheck,
-  CheckSquare
+  CheckSquare,
+  Briefcase,
+  UserCheck
 } from 'lucide-react';
 import { StatusBadge } from './StatusBadge';
 import { RiskCard } from './RiskCard';
@@ -29,7 +31,7 @@ interface EntityDrawerProps {
   onClose: () => void;
   title: string;
   subtitle?: string;
-  entityType: 'project' | 'beneficiary' | 'anomaly' | 'inspection' | 'compliance';
+  entityType: 'project' | 'beneficiary' | 'anomaly' | 'inspection' | 'compliance' | 'organization';
   data: any;
   onAction?: (actionName: string, payload?: any) => void;
   onOpenStreamModal?: (camera: any) => void;
@@ -125,7 +127,7 @@ export const EntityDrawer: React.FC<EntityDrawerProps> = ({
               }`}
             >
               <Users className="w-3.5 h-3.5" />
-              Beneficiaries
+              Beneficiaries ({projectBeneficiaries.length})
             </button>
             <button
               onClick={() => setActiveProjectTab('financial')}
@@ -163,7 +165,7 @@ export const EntityDrawer: React.FC<EntityDrawerProps> = ({
                   <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 text-xs">
                     <div>
                       <span className="text-slate-500 block">Project Code</span>
-                      <span className="font-mono text-slate-200 font-semibold">{data.code || 'NSTI-PUN-005'}</span>
+                      <span className="font-mono text-slate-200 font-semibold">{data.code || 'PRJ-PUN-001'}</span>
                     </div>
                     <div>
                       <span className="text-slate-500 block">Scheme</span>
@@ -197,13 +199,37 @@ export const EntityDrawer: React.FC<EntityDrawerProps> = ({
                     </div>
                   </div>
 
+                  {/* Linked NGO / Organization Card */}
+                  <div className="p-3.5 rounded-xl bg-indigo-950/20 border border-indigo-900/40 text-xs space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Building className="w-4 h-4 text-indigo-400" />
+                        <span className="font-bold text-indigo-300">Implementing NGO / Partner Organization</span>
+                      </div>
+                      {data.organizationId && (
+                        <button
+                          onClick={() => onAction && onAction('SWITCH_ENTITY', { type: 'organization', entity: data.organizationId })}
+                          className="px-2 py-0.5 rounded bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 text-[10px] font-mono transition"
+                        >
+                          View NGO &rarr;
+                        </button>
+                      )}
+                    </div>
+                    <div className="text-slate-200 font-semibold">
+                      {data.organizationId?.name || data.organizationName || 'Gramin Vikas Sahayog Foundation'}
+                    </div>
+                    <div className="text-[11px] text-slate-400 font-mono">
+                      Code: {data.organizationId?.code || 'GVSF-NGO'} &bull; Type: {data.organizationId?.type || 'NGO'}
+                    </div>
+                  </div>
+
                   {/* Risk Breakdown if available */}
                   {data.riskBreakdown && <RiskCard riskData={data.riskBreakdown} />}
 
                   {/* Description & Mandate */}
                   <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 text-xs">
                     <span className="text-slate-500 block mb-1 font-semibold uppercase text-[10px]">Mandate & Program Details</span>
-                    <p className="text-slate-300 leading-relaxed">{data.description || 'Residential skill training centre providing vocational courses to under-privileged youth under Ministry of Social Justice & Empowerment schemes.'}</p>
+                    <p className="text-slate-300 leading-relaxed">{data.description || 'Residential skill training centre providing vocational courses to under-privileged youth under Ministry schemes.'}</p>
                   </div>
 
                   {/* Quick Action Matrix */}
@@ -218,10 +244,24 @@ export const EntityDrawer: React.FC<EntityDrawerProps> = ({
                         <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
                       </button>
                       <button
-                        onClick={() => onAction && onAction('SURPRISE_INSPECTION', data)}
-                        className="p-2.5 rounded-lg bg-indigo-950/60 hover:bg-indigo-900 border border-indigo-800/80 text-indigo-200 flex items-center justify-between"
+                        onClick={() => setActiveProjectTab('beneficiaries')}
+                        className="p-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 flex items-center justify-between"
                       >
-                        <span className="flex items-center gap-1.5"><ClipboardCheck className="w-3.5 h-3.5 text-indigo-400" /> Dispatch Inspector</span>
+                        <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-emerald-400" /> View Beneficiaries</span>
+                        <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
+                      </button>
+                      <button
+                        onClick={() => onAction && onAction('SURPRISE_INSPECTION', data)}
+                        className="p-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 flex items-center justify-between"
+                      >
+                        <span className="flex items-center gap-1.5"><ClipboardCheck className="w-3.5 h-3.5 text-purple-400" /> Trigger Inspection</span>
+                        <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
+                      </button>
+                      <button
+                        onClick={() => onAction && onAction('CORRECTIVE_ACTION', data)}
+                        className="p-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 flex items-center justify-between"
+                      >
+                        <span className="flex items-center gap-1.5"><CheckSquare className="w-3.5 h-3.5 text-amber-400" /> Issue Directive</span>
                         <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
                       </button>
                     </div>
@@ -229,13 +269,13 @@ export const EntityDrawer: React.FC<EntityDrawerProps> = ({
                 </div>
               )}
 
-              {/* TAB: BUILDING CCTV FEEDS */}
+              {/* TAB: CCTV STREAMS */}
               {activeProjectTab === 'cctv' && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">Building CCTV Network</h3>
-                      <p className="text-[11px] text-slate-400">All registered cameras in this facility compound</p>
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">Building CCTV Camera Network</h3>
+                      <p className="text-[11px] text-slate-400">Live surveillance feeds & tamper detection</p>
                     </div>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-800">
                       {buildingCameras.filter((c: any) => c.status === 'ONLINE').length} / {buildingCameras.length} ONLINE
@@ -254,8 +294,8 @@ export const EntityDrawer: React.FC<EntityDrawerProps> = ({
                           </div>
                           <div>
                             <div className="font-semibold text-slate-200 flex items-center gap-2">
-                              <span>{cam.locationName}</span>
-                              <span className="text-[10px] font-mono text-slate-400">({cam.cameraCode})</span>
+                              <span>{cam.locationName || cam.name}</span>
+                              <span className="text-[10px] font-mono text-slate-400">({cam.cameraCode || cam.code})</span>
                             </div>
                             <div className="text-[10px] text-slate-400 mt-0.5 flex items-center gap-2">
                               <span>{cam.resolution || '1080p HD'} &bull; {cam.fps || 25} FPS</span>
@@ -275,10 +315,6 @@ export const EntityDrawer: React.FC<EntityDrawerProps> = ({
                         </div>
                       </div>
                     ))}
-                  </div>
-
-                  <div className="p-3 rounded-lg bg-sky-950/20 border border-sky-900/40 text-[11px] text-slate-300">
-                    <span className="font-semibold text-sky-300">RTSP/WebRTC Live Stream Token Proxy:</span> End-to-end encrypted video transmission adheres to Ministry video surveillance guidelines.
                   </div>
                 </div>
               )}
@@ -308,6 +344,12 @@ export const EntityDrawer: React.FC<EntityDrawerProps> = ({
                         <div className="flex items-center gap-2">
                           <span className="text-[11px] font-mono text-emerald-400 font-semibold">{b.attendanceRatio || '90%'}</span>
                           <StatusBadge status={b.verificationStatus || 'VERIFIED'} />
+                          <button
+                            onClick={() => onAction && onAction('SWITCH_ENTITY', { type: 'beneficiary', entity: b })}
+                            className="px-2 py-1 rounded bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 text-[10px] font-mono transition"
+                          >
+                            Dossier &rarr;
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -316,78 +358,124 @@ export const EntityDrawer: React.FC<EntityDrawerProps> = ({
               )}
 
               {/* TAB: FINANCIAL HEALTH */}
-              {activeProjectTab === 'financial' && (
-                <div className="space-y-3 text-xs">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">Financial Grant Utilization</h3>
-                      <p className="text-[11px] text-slate-400">FY 2025-26 Central Scheme Allocation</p>
-                    </div>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">
-                      82% EXPENDITURE CLAIMED
-                    </span>
-                  </div>
+              {activeProjectTab === 'financial' && (() => {
+                const fin = data.financialRecord;
+                const sanctioned = fin?.totalSanctionedGrant || 2500000;
+                const disbursed = fin?.totalDisbursedFunds || 2000000;
+                const expenditure = fin?.totalExpenditure || 1640000;
+                const burn = fin?.financialBurnPercent || Math.round((expenditure / (disbursed || 1)) * 100);
+                const phys = fin?.verifiedPhysicalProgressPercent || 50;
+                const deficit = Math.round(burn - phys);
+                const isSevere = deficit > 20;
+                const flaggedInvoices = fin?.invoices?.filter((inv: any) => inv.isFlagged) || [];
 
-                  <div className="grid grid-cols-3 gap-2.5 p-3.5 rounded-xl bg-slate-950 border border-slate-800 font-mono">
-                    <div>
-                      <span className="text-slate-500 block text-[10px]">Sanctioned</span>
-                      <span className="text-sm font-bold text-slate-100">₹25,00,000</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 block text-[10px]">Disbursed</span>
-                      <span className="text-sm font-bold text-slate-100">₹20,00,000</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 block text-[10px]">Expenditure</span>
-                      <span className="text-sm font-bold text-amber-400">₹16,40,000</span>
-                    </div>
-                  </div>
-
-                  {/* Budget Head Breakdown */}
-                  <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-                    <div className="text-[11px] font-semibold text-slate-300">Sanctioned Budget Heads Breakdown</div>
-                    <div className="space-y-1.5 text-[11px]">
+                return (
+                  <div className="space-y-4 text-xs">
+                    <div className="flex items-center justify-between">
                       <div>
-                        <div className="flex justify-between text-slate-300">
-                          <span>Infrastructure & Hostel Facilities</span>
-                          <span className="font-mono">₹10,50,000 (100% utilized)</span>
-                        </div>
-                        <div className="w-full h-1.5 rounded-full bg-slate-800 mt-1 overflow-hidden">
-                          <div className="h-full bg-emerald-500 rounded-full" style={{ width: '100%' }}></div>
-                        </div>
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">Financial Grant Utilization</h3>
+                        <p className="text-[11px] text-slate-400">
+                          FY {fin?.financialYear || '2025-26'} &bull; Central Ministry Scheme Allocation
+                        </p>
+                      </div>
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase ${
+                        isSevere
+                          ? 'bg-red-950 text-red-300 border border-red-800'
+                          : 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                      }`}>
+                        {burn}% EXPENDITURE BURN
+                      </span>
+                    </div>
+
+                    {/* Financial Key Metrics */}
+                    <div className="grid grid-cols-3 gap-2.5 p-3.5 rounded-xl bg-slate-950 border border-slate-800 font-mono">
+                      <div>
+                        <span className="text-slate-500 block text-[10px]">Sanctioned</span>
+                        <span className="text-sm font-bold text-slate-100">₹{sanctioned.toLocaleString('en-IN')}</span>
                       </div>
                       <div>
-                        <div className="flex justify-between text-slate-300">
-                          <span>Beneficiary Stipends & Food Mess</span>
-                          <span className="font-mono">₹8,00,000 (75% utilized)</span>
-                        </div>
-                        <div className="w-full h-1.5 rounded-full bg-slate-800 mt-1 overflow-hidden">
-                          <div className="h-full bg-sky-500 rounded-full" style={{ width: '75%' }}></div>
-                        </div>
+                        <span className="text-slate-500 block text-[10px]">Disbursed</span>
+                        <span className="text-sm font-bold text-emerald-400">₹{disbursed.toLocaleString('en-IN')}</span>
                       </div>
                       <div>
-                        <div className="flex justify-between text-slate-300">
-                          <span>Training Kits & IT Lab</span>
-                          <span className="font-mono">₹4,50,000 (60% utilized)</span>
+                        <span className="text-slate-500 block text-[10px]">Expenditure</span>
+                        <span className="text-sm font-bold text-amber-400">₹{expenditure.toLocaleString('en-IN')}</span>
+                      </div>
+                    </div>
+
+                    {/* Progress Deficit Bar */}
+                    <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-slate-200">Physical Progress vs Financial Burn</span>
+                        <span className="font-mono text-[11px]">
+                          {isSevere ? (
+                            <span className="text-red-400 font-bold">+{deficit}% Deficit (High Risk)</span>
+                          ) : (
+                            <span className="text-emerald-400">Normal Balance</span>
+                          )}
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[11px] text-slate-400">
+                          <span>Verified Physical Milestones: {phys}%</span>
+                          <span>Fund Consumption: {burn}%</span>
                         </div>
-                        <div className="w-full h-1.5 rounded-full bg-slate-800 mt-1 overflow-hidden">
-                          <div className="h-full bg-indigo-500 rounded-full" style={{ width: '60%' }}></div>
+                        <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden flex">
+                          <div className="bg-emerald-500 h-full" style={{ width: `${Math.min(100, phys)}%` }} />
+                          {deficit > 0 && (
+                            <div className="bg-amber-500 h-full" style={{ width: `${Math.min(100 - phys, deficit)}%` }} />
+                          )}
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="p-3 rounded-lg bg-amber-950/20 border border-amber-900/50 text-amber-300 space-y-1 text-[11px]">
-                    <div className="font-semibold flex items-center gap-1.5">
-                      <AlertTriangle className="w-3.5 h-3.5" />
-                      <span>Audit Anomaly (Rule 18 Triggered)</span>
-                    </div>
-                    <p className="text-slate-300 leading-relaxed">
-                      Claimed expenditure velocity (82%) is higher than verified physical milestone progress (43%). Chartered Accountant certified utilization certificate required.
-                    </p>
+                    {/* Budget Heads */}
+                    {fin?.budgetHeads && fin.budgetHeads.length > 0 && (
+                      <div className="space-y-2">
+                        <span className="font-semibold text-slate-300 block text-[11px] uppercase tracking-wider">
+                          Itemized Budget Heads
+                        </span>
+                        {fin.budgetHeads.map((head: any, idx: number) => {
+                          const util = head.utilizedAmount || 0;
+                          const sanc = head.sanctionedAmount || 1;
+                          const pct = Math.round((util / sanc) * 100);
+                          return (
+                            <div key={idx} className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800 space-y-1">
+                              <div className="flex justify-between text-[11px]">
+                                <span className="text-slate-300">{head.name}</span>
+                                <span className="font-mono text-slate-400">
+                                  ₹{util.toLocaleString('en-IN')} / ₹{sanc.toLocaleString('en-IN')} ({pct}%)
+                                </span>
+                              </div>
+                              <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full ${pct > 90 ? 'bg-red-500' : 'bg-indigo-500'}`}
+                                  style={{ width: `${Math.min(100, pct)}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Flagged Split Invoices Warning */}
+                    {flaggedInvoices.length > 0 && (
+                      <div className="p-3 rounded-xl bg-red-950/20 border border-red-900/60 space-y-1.5 text-xs text-red-200">
+                        <div className="flex items-center gap-1.5 font-bold text-red-300">
+                          <AlertTriangle className="w-3.5 h-3.5" />
+                          <span>{flaggedInvoices.length} Flagged Invoices (Rule 20 Ceiling Split)</span>
+                        </div>
+                        {flaggedInvoices.map((inv: any, idx: number) => (
+                          <div key={idx} className="text-[11px] text-slate-300 font-mono">
+                            &bull; {inv.invoiceNumber}: ₹{(inv.amount || 0).toLocaleString('en-IN')} ({inv.vendorName})
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* TAB: INSPECTIONS & AUDITS */}
               {activeProjectTab === 'inspections' && (
@@ -403,26 +491,6 @@ export const EntityDrawer: React.FC<EntityDrawerProps> = ({
                     >
                       + Dispatch Surprise Inspection
                     </button>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-slate-200">INSP-2026-PUN-001 (Surprise)</span>
-                        <StatusBadge status="ASSIGNED" />
-                      </div>
-                      <p className="text-slate-400 text-[11px]">Assigned to Inspector Amitabh Sharma &bull; Scheduled today</p>
-                      <div className="text-[10px] font-mono text-indigo-400">Geo-fence: 250m &bull; Digital Checklist: 10 Parameters</div>
-                    </div>
-
-                    <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-slate-200">INSP-2025-PUN-089 (Annual Audit)</span>
-                        <StatusBadge status="COMPLETED" />
-                      </div>
-                      <p className="text-slate-400 text-[11px]">Completed by Inspector Rajesh K. on 14 Nov 2025</p>
-                      <div className="text-[10px] font-mono text-emerald-400">Score: 88/100 &bull; SHA-256 Hash Chain Verified</div>
-                    </div>
                   </div>
                 </div>
               )}
@@ -451,11 +519,60 @@ export const EntityDrawer: React.FC<EntityDrawerProps> = ({
                 </div>
                 <div>
                   <span className="text-slate-500 block">Contact Phone</span>
-                  <span className="font-mono text-slate-200">{data.maskedPhone}</span>
+                  <span className="font-mono text-slate-200">{data.maskedPhone || '+91-98765*****'}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">Enrollment Interval</span>
-                  <span className="text-slate-200">{data.enrollmentStartDate} to {data.enrollmentEndDate || 'Active'}</span>
+                  <span className="text-slate-500 block">Location</span>
+                  <span className="text-slate-200">{data.district}, {data.state}</span>
+                </div>
+              </div>
+
+              {/* Linked Project Facility & Implementing NGO Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* Linked Project Card */}
+                <div className="p-3.5 rounded-xl bg-sky-950/20 border border-sky-900/40 text-xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-sky-400 flex items-center gap-1.5">
+                      <Briefcase className="w-3.5 h-3.5" /> Linked Project Facility
+                    </span>
+                    {data.linkedProject && (
+                      <button
+                        onClick={() => onAction && onAction('SWITCH_ENTITY', { type: 'project', entity: data.linkedProject })}
+                        className="px-2 py-0.5 rounded bg-sky-600/30 hover:bg-sky-600/50 text-sky-300 text-[10px] font-mono transition"
+                      >
+                        View &rarr;
+                      </button>
+                    )}
+                  </div>
+                  <div className="font-semibold text-slate-200">
+                    {data.linkedProject?.name || data.projectName || 'PMKVY Multi-Skill Training Center Aundh'}
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-mono">
+                    Code: {data.linkedProject?.code || 'PRJ-PUN-001'} &bull; Radius: {data.linkedProject?.geofenceRadiusMeters || 200}m
+                  </div>
+                </div>
+
+                {/* Linked Implementing NGO Card */}
+                <div className="p-3.5 rounded-xl bg-indigo-950/20 border border-indigo-900/40 text-xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-indigo-400 flex items-center gap-1.5">
+                      <Building className="w-3.5 h-3.5" /> Implementing NGO / Partner
+                    </span>
+                    {data.linkedOrg && (
+                      <button
+                        onClick={() => onAction && onAction('SWITCH_ENTITY', { type: 'organization', entity: data.linkedOrg })}
+                        className="px-2 py-0.5 rounded bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 text-[10px] font-mono transition"
+                      >
+                        View &rarr;
+                      </button>
+                    )}
+                  </div>
+                  <div className="font-semibold text-slate-200">
+                    {data.linkedOrg?.name || data.organizationName || 'Gramin Vikas Sahayog Foundation'}
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-mono">
+                    [{data.linkedOrg?.type || 'NGO'}] {data.linkedOrg?.code || 'GVSF-NGO'}
+                  </div>
                 </div>
               </div>
 
@@ -476,6 +593,70 @@ export const EntityDrawer: React.FC<EntityDrawerProps> = ({
                       ? `${Math.round((data.verifiedAttendanceSessions / data.totalAttendanceSessions) * 100)}% (${data.verifiedAttendanceSessions}/${data.totalAttendanceSessions})`
                       : '92% (23/25 sessions)'}
                   </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Entity: Organization / NGO */}
+          {entityType === 'organization' && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 text-xs">
+                <div>
+                  <span className="text-slate-500 block">Entity Classification</span>
+                  <span className="font-mono text-indigo-300 font-semibold">{data.type}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block">Registration Code</span>
+                  <span className="font-mono text-slate-200">{data.code}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block">NITI Aayog Darpan ID</span>
+                  <span className="font-mono text-slate-200">{data.darpanId || `IND-${data.state?.slice(0, 2).toUpperCase()}-2024-${data.code}`}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block">Jurisdiction</span>
+                  <span className="text-slate-200">{data.district}, {data.state}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block">Contact Phone</span>
+                  <span className="font-mono text-slate-200">{data.contactPhone || '+91-9876543210'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block">Official Email</span>
+                  <span className="text-slate-200">{data.contactEmail}</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-slate-500 block">Headquarters Address</span>
+                  <span className="text-slate-200">{data.address}</span>
+                </div>
+              </div>
+
+              {/* Linked Projects under this NGO */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
+                    <Briefcase className="w-3.5 h-3.5 text-sky-400" /> Linked Monitored Projects
+                  </h4>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-800">
+                    {data.linkedProjects?.length || 2} ACTIVE SITES
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  {(data.linkedProjects || []).slice(0, 4).map((p: any) => (
+                    <div
+                      key={p._id || p.id}
+                      onClick={() => onAction && onAction('SWITCH_ENTITY', { type: 'project', entity: p })}
+                      className="p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition cursor-pointer flex items-center justify-between text-xs"
+                    >
+                      <div>
+                        <div className="font-semibold text-slate-200">{p.name}</div>
+                        <div className="text-[10px] text-slate-400 font-mono mt-0.5">{p.code} &bull; {p.district}, {p.state}</div>
+                      </div>
+                      <StatusBadge status={p.riskLevel} type="risk" />
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -510,49 +691,8 @@ export const EntityDrawer: React.FC<EntityDrawerProps> = ({
                   <StatusBadge status={data.status || 'OPEN'} />
                 </div>
               </div>
-
-              {/* Human in the loop review actions */}
-              <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-300">Official Adjudication Actions:</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => onAction && onAction('VERIFY', data)}
-                    className="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs transition"
-                  >
-                    Confirm Anomaly
-                  </button>
-                  <button
-                    onClick={() => onAction && onAction('DISMISS', data)}
-                    className="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs transition"
-                  >
-                    Dismiss / False Positive
-                  </button>
-                  <button
-                    onClick={() => onAction && onAction('CORRECTIVE_ACTION', data)}
-                    className="px-3 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium text-xs transition"
-                  >
-                    Issue Corrective Directive
-                  </button>
-                  <button
-                    onClick={() => onAction && onAction('SURPRISE_INSPECTION', data)}
-                    className="px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs transition"
-                  >
-                    Dispatch Surprise Inspection
-                  </button>
-                </div>
-              </div>
             </div>
           )}
-        </div>
-
-        {/* Drawer Footer */}
-        <div className="p-4 border-t border-slate-800 bg-slate-950/90 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition"
-          >
-            Close Dossier
-          </button>
         </div>
       </div>
     </div>

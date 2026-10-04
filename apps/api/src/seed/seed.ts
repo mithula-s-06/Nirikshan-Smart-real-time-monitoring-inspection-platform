@@ -622,10 +622,7 @@ const SEED_PROJECTS_DATA = [
   },
 ];
 
-export async function runSeed(): Promise<void> {
-  logger.info('🌱 Starting NIRIKSHAN Platform Data Seeding...');
-  await connectDatabase();
-
+export async function seedData(): Promise<void> {
   try {
     logger.info('Purging old database records...');
     await User.deleteMany({});
@@ -817,6 +814,24 @@ export async function runSeed(): Promise<void> {
     // 6. Seed CCTV Cameras across Key Infrastructure Projects
     logger.info('Seeding CCTV Edge Cameras & Stream Registry...');
     const cctvSeedList = [
+      {
+        name: 'Mobile Phone Live Inspection Feed (Android IP Camera)',
+        code: 'CAM-MOB-001',
+        projectId: allProjects.find((p) => p.district === 'Pune')?._id || allProjects[0]._id,
+        locationDescription: 'Handheld Mobile Inspection Feed (Android IP Webcam / MJPEG over Wi-Fi)',
+        location: { type: 'Point' as const, coordinates: [73.8567, 18.5204] },
+        streamProtocol: StreamProtocol.MJPEG,
+        rawStreamUrl: process.env.MOBILE_CCTV_STREAM_URL || 'http://10.146.163.75:8080/video',
+        status: CameraStatus.ONLINE,
+        resolution: '1080p Full HD',
+        fps: 30,
+        model: 'Android Phone IP Webcam (MJPEG/HTTP Stream)',
+        ipAddress: '10.146.163.75',
+        macAddress: 'AC:5F:3E:99:44:11',
+        lastHeartbeatAt: new Date(),
+        cpuUsagePct: 18,
+        memoryUsagePct: 32,
+      },
       {
         name: 'Main Workshop & Lab Floor Camera 01',
         code: 'CAM-PUN-001',
@@ -1078,6 +1093,14 @@ export async function runSeed(): Promise<void> {
   } catch (err: any) {
     logger.error({ err }, '❌ Error occurred during data seed');
     throw err;
+  }
+}
+
+export async function runSeed(): Promise<void> {
+  logger.info('🌱 Starting NIRIKSHAN Platform Data Seeding...');
+  await connectDatabase();
+  try {
+    await seedData();
   } finally {
     await disconnectDatabase();
   }
@@ -1088,4 +1111,5 @@ if (require.main === module) {
     .then(() => process.exit(0))
     .catch(() => process.exit(1));
 }
+
 

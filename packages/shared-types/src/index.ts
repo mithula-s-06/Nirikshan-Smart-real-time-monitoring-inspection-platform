@@ -480,6 +480,8 @@ export enum StreamProtocol {
   WEBRTC = 'WEBRTC',
   RTSP = 'RTSP',
   DEMO = 'DEMO',
+  MJPEG = 'MJPEG',
+  HTTP = 'HTTP',
 }
 
 export interface ICCTVCamera {

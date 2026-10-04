@@ -70,10 +70,14 @@ export class VCController {
         verifiedStaffCount: verifiedStaffCount || 5,
         reportedBeneficiaryCount: reportedBeneficiaryCount || 30,
         verifiedBeneficiaryCount: verifiedBeneficiaryCount || 28,
-        observations: observations || [
-          { question: 'Check incharge presence on camera', response: 'Verified in person', isSatisfactory: true },
-          { question: 'Verify beneficiary classroom count', response: 'Count verified on camera feed', isSatisfactory: true },
-        ],
+        observations: Array.isArray(observations)
+          ? observations
+          : typeof observations === 'string' && observations.trim()
+          ? [{ question: 'Officer Observation', response: observations.trim(), isSatisfactory: true }]
+          : [
+              { question: 'Check incharge presence on camera', response: 'Verified in person', isSatisfactory: true },
+              { question: 'Verify beneficiary classroom count', response: 'Count verified on camera feed', isSatisfactory: true },
+            ],
         notes: notes || 'Surprise video conference spot-check conducted successfully by DoSJE monitoring officer.',
         anomalyFlagged: reportedBeneficiaryCount && verifiedBeneficiaryCount && verifiedBeneficiaryCount < reportedBeneficiaryCount * 0.8,
         isIntegrationReady: true,
