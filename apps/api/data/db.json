@@ -1410,6 +1410,22 @@
       "verificationRatio": 0,
       "attendanceRate": 0,
       "id": "id_1791128240636_6niowk"
+    },
+    {
+      "unitId": "unit_st_jude",
+      "unitName": "St. Jude Youth Residential Hostel",
+      "sessionType": "Morning Rollcall",
+      "date": "2026-10-05",
+      "status": "active",
+      "createdAt": "2026-10-05T03:45:58.463Z",
+      "reasonForCorrection": null,
+      "photos": [],
+      "ticks": [],
+      "faceCount": 0,
+      "tickedCount": 0,
+      "verificationRatio": 0,
+      "attendanceRate": 0,
+      "id": "id_1791171958463_h555xw"
     }
   ],
   "staff_checkins": [],

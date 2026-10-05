@@ -9,8 +9,40 @@ import {
   Home,
   LogIn,
   Landmark,
+  Zap,
 } from 'lucide-react';
 import { PortalEmblem } from '../common/Topbar';
+
+const QUICK_LOGIN_PRESETS = [
+  {
+    roleName: 'Super Admin',
+    desc: 'National HQ (All Privileges)',
+    email: 'superadmin@nirikshan.gov.in',
+    badge: 'Full Access',
+    badgeColor: 'bg-red-50 text-red-700 border-red-200',
+  },
+  {
+    roleName: 'Joint Secretary',
+    desc: 'National Oversight (DoSJE)',
+    email: 'dept.official1@nirikshan.gov.in',
+    badge: 'National',
+    badgeColor: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  },
+  {
+    roleName: 'Field Inspector',
+    desc: 'Surprise Inspections & PMU',
+    email: 'inspector1@nirikshan.gov.in',
+    badge: 'Inspector',
+    badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  },
+  {
+    roleName: 'Institution Head',
+    desc: 'NGO Administrator',
+    email: 'ngo.admin1@nirikshan.gov.in',
+    badge: 'Institution',
+    badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
+  },
+];
 
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
@@ -29,6 +61,12 @@ export const LoginPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleQuickLogin = (targetEmail = 'superadmin@nirikshan.gov.in') => {
+    setEmail(targetEmail);
+    setPassword('Password@123');
+    attempt(targetEmail, 'Password@123');
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -166,6 +204,66 @@ export const LoginPage: React.FC = () => {
               <p className="text-[11px] text-[#6b7a96] text-center font-medium">
                 5 failed attempts lock the account for 15 minutes.
               </p>
+
+              {/* Quick Login for Testing */}
+              <div className="pt-2">
+                <div className="relative my-3">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white px-2.5 text-[#0b2a6b] font-bold text-[10px] tracking-wider flex items-center gap-1">
+                      <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
+                      Testing &amp; Evaluation Mode
+                    </span>
+                  </div>
+                </div>
+
+                {/* Primary Quick Login Button */}
+                <button
+                  type="button"
+                  id="btn-quick-login"
+                  onClick={() => handleQuickLogin('superadmin@nirikshan.gov.in')}
+                  disabled={loading}
+                  className="w-full py-2.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs shadow-sm hover:shadow transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                  title="Instant 1-Click Login as Super Admin"
+                >
+                  <Zap className="w-4 h-4 text-amber-300 fill-amber-300 shrink-0" />
+                  <span>⚡ Quick Test Login (Super Admin)</span>
+                </button>
+
+                {/* 1-Click Persona Cards */}
+                <div className="mt-2.5 space-y-1.5">
+                  <div className="text-[10px] font-semibold text-[#6b7a96] flex items-center justify-between px-0.5">
+                    <span>Or 1-Click Login by Role:</span>
+                    <span className="text-emerald-700 font-bold">Auto Pre-fill &amp; Auth</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {QUICK_LOGIN_PRESETS.map((p) => (
+                      <button
+                        key={p.email}
+                        type="button"
+                        id={`btn-quick-login-${p.roleName.toLowerCase().replace(/\s+/g, '-')}`}
+                        disabled={loading}
+                        onClick={() => handleQuickLogin(p.email)}
+                        className="text-left p-2 rounded-lg border border-[#d6deec] hover:border-[#0b2a6b] bg-slate-50 hover:bg-blue-50/70 transition group cursor-pointer disabled:opacity-60 flex flex-col justify-between"
+                      >
+                        <div className="flex items-center justify-between gap-1 w-full">
+                          <span className="text-[11px] font-bold text-[#0f2147] group-hover:text-[#0b2a6b] truncate">
+                            {p.roleName}
+                          </span>
+                          <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded border shrink-0 ${p.badgeColor}`}>
+                            {p.badge}
+                          </span>
+                        </div>
+                        <div className="text-[9.5px] text-[#6b7a96] truncate mt-0.5 font-medium">
+                          {p.desc}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </form>
           </div>
 

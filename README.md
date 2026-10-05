@@ -199,6 +199,20 @@ Avoids inspector predictability and collusion by scoring available inspectors ac
 
 ---
 
+## 🚀 Quick Start (One Command)
+
+To run both the **Backend API Server** (port 5000) and the **Admin Web Command Center** (port 5173) concurrently with one single command:
+
+```bash
+npm run dev
+```
+
+- **Web Dashboard**: [http://localhost:5173](http://localhost:5173)
+- **Backend Health**: [http://localhost:5000/api/v1/health](http://localhost:5000/api/v1/health)
+- **⚡ Quick Demo Login**: Use the new 1-Click Quick Login button on the sign-in page to enter immediately as Super Admin, Joint Secretary, Inspector, or NGO Head.
+
+---
+
 ## 🏆 Smart India Hackathon Presentation Flow
 
 1. **Login as Super Admin** (`superadmin@nirikshan.gov.in` / `Password@123`).
