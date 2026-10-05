@@ -772,7 +772,7 @@ export function App() {
         }}
       />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex min-h-[calc(100vh-9.75rem)]">
         {/* Left Navigation Sidebar */}
         <Sidebar
           activeTab={activeTab}
@@ -782,7 +782,7 @@ export function App() {
         />
 
         {/* Center Main Stage Content */}
-        <main id="main-content" className="flex-1 min-w-0 p-6 overflow-y-auto bg-[#f3f6fb] flex flex-col justify-between">
+        <main id="main-content" className="flex-1 min-w-0 p-6 bg-[#f3f6fb] flex flex-col justify-between">
           {/* Role-specific welcome banner + quick tiles (shown on each role's home view) */}
           {activeTab === homeTab && (
             <PortalHero kind={portalKind} activeTab={activeTab} onSelectTab={setActiveTab} />
@@ -1405,12 +1405,11 @@ export function App() {
             </>
           )}
 
-          {/* Official Government of India & NIC Footer */}
-          <div className="mt-12 -mx-6 -mb-6">
-            <GovernmentFooter />
-          </div>
         </main>
       </div>
+
+      {/* Official Government of India & NIC Footer - spans 100% full width from left to right */}
+      <GovernmentFooter />
 
       {/* Universal Right Slide-Over Entity Investigation Drawer */}
       <EntityDrawer

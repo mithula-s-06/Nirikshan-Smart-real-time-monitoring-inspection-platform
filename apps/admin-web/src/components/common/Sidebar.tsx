@@ -189,8 +189,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const sections = getNavSections();
 
   return (
-    <aside className="w-64 shrink-0 bg-white border-r border-[#d6deec] flex flex-col h-[calc(100vh-8.75rem)] sticky top-[8.75rem] select-none overflow-y-auto shadow-sm">
-      <div className="p-3.5 space-y-5 flex-1">
+    <aside className="w-64 shrink-0 bg-white border-r border-[#d6deec] flex flex-col self-start sticky top-[9.75rem] max-h-[calc(100vh-9.75rem)] select-none overflow-y-auto shadow-sm z-20">
+      <div className="p-3.5 pt-4 space-y-5 flex-1">
         {sections.map((section, sIdx) => (
           <div key={sIdx} className="space-y-1">
             <h3 className="px-3 py-1.5 text-[10.5px] font-extrabold tracking-wider text-[#0b2a6b] uppercase border-l-4 border-[#f58a3c] bg-[#f0f4fa] rounded-r">

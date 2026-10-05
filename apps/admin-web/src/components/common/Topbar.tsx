@@ -14,7 +14,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { DataScopeLevel } from '@nirikshan/shared-types';
+import { DataScopeLevel, UserRole } from '@nirikshan/shared-types';
 import { NationalEmblem } from './NationalEmblem';
 import { GIGWTopStrip } from './GIGWTopStrip';
 
@@ -62,6 +62,20 @@ export const Topbar: React.FC<TopbarProps> = ({
 }) => {
   const { user, scope, logout } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
+
+  const designation = (() => {
+    if (user?.designation && user.designation.trim().toLowerCase() !== 'official') {
+      return user.designation;
+    }
+    if (user?.role === UserRole.SYSTEM_SUPER_ADMIN || user?.role === UserRole.SUPER_ADMIN) return 'National System Administrator';
+    if (user?.role === UserRole.DOSJE_HQ_ADMIN || user?.role === UserRole.DOSJE_HQ_OFFICIAL) return 'Ministry HQ Administrator';
+    if (user?.role === UserRole.DOSJE_STATE_OFFICIAL || user?.role === UserRole.STATE_AUTHORITY) return 'State Welfare Officer';
+    if (user?.role === UserRole.DOSJE_DISTRICT_OFFICIAL || user?.role === UserRole.DISTRICT_AUTHORITY) return 'District Welfare Officer';
+    if (user?.role === UserRole.PMU_INSPECTOR || user?.role === UserRole.INSPECTOR) return 'PMU Field Inspector';
+    if (user?.role === UserRole.NGO_ADMIN || user?.role === UserRole.INSTITUTE_ADMIN) return 'Institution Principal / Head';
+    if (user?.role === UserRole.BENEFICIARY) return 'Citizen Beneficiary';
+    return 'Ministry Monitoring Official';
+  })();
 
   const jurisdiction = (() => {
     if (!scope || scope.level === DataScopeLevel.NATIONAL) return 'National HQ';
@@ -113,8 +127,8 @@ export const Topbar: React.FC<TopbarProps> = ({
           </div>
 
           <div className="hidden lg:block text-right leading-tight select-none">
-            <div className="text-[10.5px] font-bold text-[#0b2a6b]">Azadi Ka Amrit Mahotsav</div>
-            <div className="text-[10px] text-[#f58a3c] font-semibold">Digital India • Sunishchit Nirikshan</div>
+            <div className="text-[10.5px] font-bold text-[#0b2a6b]">75 Years of National Development</div>
+            <div className="text-[10px] text-[#f58a3c] font-semibold">Digital India • Real-Time National Inspection</div>
           </div>
         </div>
       </div>
@@ -130,7 +144,7 @@ export const Topbar: React.FC<TopbarProps> = ({
             <Home className="w-3.5 h-3.5" /> Home
           </button>
           <span className="hidden md:flex h-full items-center px-5 text-xs font-semibold text-white/95 border-r border-white/15">
-            {user?.designation || 'Official Workspace'}
+            {designation}
           </span>
           <span className="hidden lg:flex items-center ml-3 px-2.5 py-0.5 rounded-full bg-white/15 border border-white/25 text-[10px] font-bold text-white shadow-inner">
             {jurisdiction}

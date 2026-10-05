@@ -100,8 +100,8 @@ export const LoginPage: React.FC = () => {
           </div>
         </div>
         <div className="hidden lg:block text-right leading-tight select-none">
-          <div className="text-[11px] font-bold text-[#0b2a6b]">Azadi Ka Amrit Mahotsav</div>
-          <div className="text-[10px] text-[#f58a3c] font-semibold">Digital India • Sunishchit Nirikshan</div>
+          <div className="text-[11px] font-bold text-[#0b2a6b]">75 Years of National Development</div>
+          <div className="text-[10px] text-[#f58a3c] font-semibold">Digital India • Real-Time National Inspection</div>
         </div>
       </div>
 
@@ -111,7 +111,7 @@ export const LoginPage: React.FC = () => {
           <span className="h-full px-5 flex items-center gap-1.5 bg-[#f58a3c] text-white text-xs font-bold">
             <Home className="w-3.5 h-3.5" /> Home
           </span>
-          <span className="px-5 text-xs text-white/95 font-semibold">Official Sign-In Gateway (e-Pramaan / Role Credentials)</span>
+          <span className="px-5 text-xs text-white/95 font-semibold">Official Sign-In Gateway (Digital Identity / Role Credentials)</span>
         </div>
         <span className="h-8 px-4 rounded-lg bg-[#f58a3c] text-white text-xs font-bold flex items-center gap-1.5 shadow-sm">
           <LogIn className="w-3.5 h-3.5" /> Authorized Login
