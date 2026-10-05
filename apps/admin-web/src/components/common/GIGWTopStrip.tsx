@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Volume2, Eye, Globe2, Shield, Info, Check } from 'lucide-react';
+import React, { useState } from 'react';
+import { Eye, Globe2 } from 'lucide-react';
 
 interface GIGWTopStripProps {
   onSkipToContent?: () => void;
 }
 
-export const GIGWTopStrip: React.FC<GIGWTopStripProps> = ({ onSkipToContent }) => {
+export const GIGWTopStrip: React.FC<GIGWTopStripProps> = () => {
   const [fontSizeLevel, setFontSizeLevel] = useState<number>(0); // -1 (small), 0 (normal), 1 (large)
   const [highContrast, setHighContrast] = useState<boolean>(false);
-  const [screenReaderNotice, setScreenReaderNotice] = useState<boolean>(false);
 
   // Apply font size adjustment to document root
   const handleFontSizeChange = (delta: number) => {
@@ -26,19 +25,6 @@ export const GIGWTopStrip: React.FC<GIGWTopStripProps> = ({ onSkipToContent }) =
       document.documentElement.classList.add('high-contrast-mode');
     } else {
       document.documentElement.classList.remove('high-contrast-mode');
-    }
-  };
-
-  const handleSkip = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (onSkipToContent) {
-      onSkipToContent();
-    } else {
-      const mainEl = document.querySelector('main') || document.getElementById('main-content');
-      if (mainEl) {
-        mainEl.scrollIntoView({ behavior: 'smooth' });
-        mainEl.focus();
-      }
     }
   };
 
@@ -65,30 +51,6 @@ export const GIGWTopStrip: React.FC<GIGWTopStripProps> = ({ onSkipToContent }) =
 
         {/* Right: GIGW Accessibility & Language Tools */}
         <div className="flex items-center gap-3 ml-auto text-[10.5px]">
-          {/* Skip to Main Content (GIGW 3.0 Mandatory) */}
-          <a
-            href="#main-content"
-            onClick={handleSkip}
-            className="text-[#f1f5f9] hover:text-[#FF9933] underline font-semibold transition py-0.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
-          >
-            Skip to Main Content
-          </a>
-
-          <span className="text-white/30">|</span>
-
-          {/* Screen Reader Access */}
-          <button
-            type="button"
-            onClick={() => setScreenReaderNotice(!screenReaderNotice)}
-            className="flex items-center gap-1 text-[#f1f5f9] hover:text-[#FF9933] transition"
-            title="Screen Reader Access Guidelines"
-          >
-            <Volume2 className="w-3 h-3 text-[#FF9933]" />
-            <span className="hidden lg:inline font-medium">Screen Reader Access</span>
-          </button>
-
-          <span className="text-white/30">|</span>
-
           {/* Text Size Resizer: A- | A | A+ */}
           <div className="flex items-center gap-1 bg-[#0e224e] px-1.5 py-0.5 rounded border border-[#1d3d7d]">
             <button
@@ -150,25 +112,6 @@ export const GIGWTopStrip: React.FC<GIGWTopStripProps> = ({ onSkipToContent }) =
           </div>
         </div>
       </div>
-
-      {/* Screen Reader Modal / Banner */}
-      {screenReaderNotice && (
-        <div className="bg-[#0c1f48] border-t border-[#1c3f85] px-4 py-2 text-[#f1f5f9] text-[11px] flex items-center justify-between">
-          <div className="flex items-center gap-2 max-w-4xl">
-            <Info className="w-4 h-4 text-[#FF9933] shrink-0" />
-            <span className="text-white/95">
-              <strong className="text-white">Screen Reader Compatibility Notice:</strong> This NIRIKSHAN portal complies with the Guidelines for Indian Government Websites (GIGW 3.0) and World Wide Web Consortium (W3C) Web Content Accessibility Guidelines (WCAG) 2.1 Level AA. It is compatible with major screen readers including NVDA, JAWS, and VoiceOver.
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setScreenReaderNotice(false)}
-            className="px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-white font-bold text-xs"
-          >
-            Dismiss
-          </button>
-        </div>
-      )}
     </div>
   );
 };
