@@ -100,8 +100,14 @@ export class CCTVController {
         targetUrl = parsed.toString();
       }
       const client = parsed.protocol === 'https:' ? https : http;
+      const requestOptions: any = {
+        timeout: 8000,
+      };
+      if (parsed.protocol === 'https:') {
+        requestOptions.rejectUnauthorized = false;
+      }
 
-      const streamReq = client.get(targetUrl, { timeout: 6000 }, (streamRes) => {
+      const streamReq = client.get(targetUrl, requestOptions, (streamRes) => {
         const contentType =
           streamRes.headers['content-type'] || 'multipart/x-mixed-replace; boundary=boundarydonotcross';
         res.writeHead(streamRes.statusCode || 200, {
