@@ -1,0 +1,88 @@
+services:
+  # ============================================================================
+  # NIRIKSHAN Platform Service (Backend API + Admin Web Command Center)
+  # ============================================================================
+  nirikshan-platform:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nirikshan-platform
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - API_PREFIX=/api/v1
+      - CORS_ORIGIN=http://localhost:5000,http://localhost:5173
+      - MONGODB_URI=mongodb://mongodb:27017/nirikshan_db
+      - USE_MEMORY_DB=false
+      - REDIS_URL=redis://redis:6379
+      - SERVE_FRONTEND=true
+      - JWT_ACCESS_SECRET=nirikshan_prod_access_secret_super_secure_key_2026_xyz!
+      - JWT_REFRESH_SECRET=nirikshan_prod_refresh_secret_super_secure_key_2026_abc@
+      - JWT_ACCESS_EXPIRATION=15m
+      - JWT_REFRESH_EXPIRATION=7d
+      - STORAGE_PROVIDER=local
+      - STORAGE_LOCAL_DIR=./uploads
+      - LOG_LEVEL=info
+    volumes:
+      - nirikshan_uploads:/app/uploads
+      - nirikshan_logs:/app/logs
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - nirikshan-network
+
+  # ============================================================================
+  # MongoDB Database Service
+  # ============================================================================
+  mongodb:
+    image: mongo:7.0-jammy
+    container_name: nirikshan-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=nirikshan_db
+    volumes:
+      - nirikshan_mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nirikshan-network
+
+  # ============================================================================
+  # Redis Cache & Rate Limit Service
+  # ============================================================================
+  redis:
+    image: redis:7.2-alpine
+    container_name: nirikshan-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - nirikshan_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nirikshan-network
+
+volumes:
+  nirikshan_mongo_data:
+  nirikshan_redis_data:
+  nirikshan_uploads:
+  nirikshan_logs:
+
+networks:
+  nirikshan-network:
+    driver: bridge

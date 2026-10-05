@@ -2,6 +2,7 @@ import http from 'http';
 import { io as Client, Socket as ClientSocket } from 'socket.io-client';
 import { createApp } from '../app';
 import { connectDatabase, disconnectDatabase } from '../config/database';
+import { seedData } from '../seed/seed';
 import { initializeSocketServer } from '../socket/socket.server';
 import { emitter } from '../socket/emitter';
 import { SocketEvent, UserRole, InspectionStatus, AnomalySeverity, AnomalyType } from '@nirikshan/shared-types';
@@ -9,6 +10,7 @@ import { SocketEvent, UserRole, InspectionStatus, AnomalySeverity, AnomalyType }
 async function runSocketTests() {
   console.log('🧪 Starting NIRIKSHAN Phase 7: Real-Time Event & Socket.IO Telemetry Tests...');
   await connectDatabase();
+  await seedData();
 
   const app = createApp();
   const server = http.createServer(app);

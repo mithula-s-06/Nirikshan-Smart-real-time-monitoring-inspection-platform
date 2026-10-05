@@ -1,5 +1,6 @@
 import express, { Express } from 'express';
 import path from 'path';
+import fs from 'fs';
 import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
@@ -67,17 +68,42 @@ export function createApp(): Express {
   app.use(env.API_PREFIX, apiRouter);
   app.use('/api', apiRouter);
 
-  // 7. Base root route
-  app.get('/', (_req, res) => {
-    res.json({
-      name: 'NIRIKSHAN API',
-      description: 'Smart Real-Time Monitoring & Inspection Platform',
-      version: '1.0.0',
-      docs: `${env.API_PREFIX}/health`,
-    });
-  });
+  // 8. Serve Production Admin Web SPA if built & enabled
+  const possibleDistPaths = [
+    path.resolve(process.cwd(), 'apps/admin-web/dist'),
+    path.resolve(__dirname, '../../../apps/admin-web/dist'),
+    path.resolve(__dirname, '../../admin-web/dist'),
+  ];
+  const adminWebDist = possibleDistPaths.find((p) => fs.existsSync(p));
 
-  // 8. 404 and Global Error Handling
+  if (adminWebDist && (env.NODE_ENV === 'production' || process.env.SERVE_FRONTEND === 'true')) {
+    app.use(express.static(adminWebDist));
+    app.get('*', (req, res, next) => {
+      if (
+        req.path.startsWith('/api') ||
+        req.path.startsWith('/uploads') ||
+        req.path.startsWith('/socket.io')
+      ) {
+        return next();
+      }
+      res.sendFile(path.join(adminWebDist, 'index.html'));
+    });
+  } else {
+    // Base root route
+    app.get('/', (_req, res) => {
+      res.json({
+        name: 'NIRIKSHAN API',
+        description: 'Smart Real-Time Monitoring & Inspection Platform',
+        version: '1.0.0',
+        docs: `${env.API_PREFIX}/health`,
+        frontend: adminWebDist
+          ? 'Built and available (set NODE_ENV=production or SERVE_FRONTEND=true to serve)'
+          : 'Not built (run npm run build:admin)',
+      });
+    });
+  }
+
+  // 9. 404 and Global Error Handling
   app.use(notFoundHandler);
   app.use(errorHandler);
 

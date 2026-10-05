@@ -1,11 +1,13 @@
 import http from 'http';
 import { createApp } from '../app';
 import { connectDatabase, disconnectDatabase } from '../config/database';
+import { seedData } from '../seed/seed';
 import { UserRole, ProjectStatus, RiskLevel } from '@nirikshan/shared-types';
 
 async function runProjectTests() {
   console.log('🧪 Starting NIRIKSHAN Projects & Geospatial Integration Tests...');
   await connectDatabase();
+  await seedData();
 
   const app = createApp();
   const server = http.createServer(app);

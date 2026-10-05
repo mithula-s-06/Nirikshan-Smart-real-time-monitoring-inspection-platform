@@ -1,6 +1,7 @@
 import http from 'http';
 import { createApp } from '../app';
 import { connectDatabase, disconnectDatabase } from '../config/database';
+import { seedData } from '../seed/seed';
 import { Project } from '../models/project.model';
 import { CCTVCamera } from '../models/cctvCamera.model';
 import { AuditLog } from '../models/auditLog.model';
@@ -13,6 +14,7 @@ import {
 async function runCCTVTests() {
   console.log('🧪 Starting NIRIKSHAN Phase 9: CCTV Stream Abstraction & Live Feed Tests...');
   await connectDatabase();
+  await seedData();
 
   const app = createApp();
   const server = http.createServer(app);

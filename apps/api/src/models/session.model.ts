@@ -36,7 +36,6 @@ const sessionSchema = new Schema<ISessionDocument>(
     expiresAt: {
       type: Date,
       required: true,
-      index: true,
     },
     isValid: {
       type: Boolean,

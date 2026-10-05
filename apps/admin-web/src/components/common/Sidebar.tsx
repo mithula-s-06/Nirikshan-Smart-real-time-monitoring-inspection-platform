@@ -189,11 +189,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const sections = getNavSections();
 
   return (
-    <aside className="w-64 shrink-0 bg-white border-r border-slate-800 flex flex-col h-[calc(100vh-7.25rem)] sticky top-[7.25rem] select-none overflow-y-auto">
-      <div className="p-4 space-y-6 flex-1">
+    <aside className="w-64 shrink-0 bg-white border-r border-[#d6deec] flex flex-col h-[calc(100vh-8.75rem)] sticky top-[8.75rem] select-none overflow-y-auto shadow-sm">
+      <div className="p-3.5 space-y-5 flex-1">
         {sections.map((section, sIdx) => (
           <div key={sIdx} className="space-y-1">
-            <h3 className="px-3 py-1 text-[10px] font-bold tracking-wider text-portal-navy uppercase border-l-4 border-portal-orange bg-slate-950">
+            <h3 className="px-3 py-1.5 text-[10.5px] font-extrabold tracking-wider text-[#0b2a6b] uppercase border-l-4 border-[#f58a3c] bg-[#f0f4fa] rounded-r">
               {section.title}
             </h3>
             <div className="space-y-0.5 pt-1">
@@ -204,18 +204,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <button
                     key={item.id}
                     onClick={() => onSelectTab(item.id)}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                       isActive
-                        ? 'bg-portal-navy text-white shadow-sm'
-                        : 'text-slate-300 hover:text-portal-navy hover:bg-slate-950'
+                        ? 'bg-[#0b2a6b] text-white shadow-sm'
+                        : 'text-[#324568] hover:text-[#0b2a6b] hover:bg-[#eaf0fb]'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-portal-navy'}`} />
-                      <span className="text-left">{item.label}</span>
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-[#0b2a6b]'}`} />
+                      <span className="text-left font-medium">{item.label}</span>
                     </div>
                     {item.badge !== undefined && item.badge > 0 && (
-                      <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-portal-orange text-white">
+                      <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                        isActive ? 'bg-[#f58a3c] text-white' : 'bg-[#e0701f] text-white'
+                      }`}>
                         {item.badge}
                       </span>
                     )}
@@ -228,12 +230,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Principle footer */}
-      <div className="p-3 m-3 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-400">
-        <div className="font-bold text-portal-navy flex items-center gap-1.5">
-          <Shield className="w-3.5 h-3.5 text-portal-orange" />
+      <div className="p-3 m-3 rounded-xl bg-[#f0f4fa] border border-[#d6deec] text-[11px] text-[#4d5d7c]">
+        <div className="font-bold text-[#0b2a6b] flex items-center gap-1.5">
+          <Shield className="w-3.5 h-3.5 text-[#f58a3c]" />
           <span>Automate the Work</span>
         </div>
-        <p className="text-[10px] text-slate-400 mt-1 leading-normal">
+        <p className="text-[10px] text-[#4d5d7c] mt-1 leading-normal">
           Not the decision. Official review and audit verification required for every flagged signal.
         </p>
       </div>

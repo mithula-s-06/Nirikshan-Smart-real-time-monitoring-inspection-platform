@@ -1,6 +1,7 @@
 import http from 'http';
 import { createApp } from '../app';
 import { connectDatabase, disconnectDatabase } from '../config/database';
+import { seedData } from '../seed/seed';
 import { Project } from '../models/project.model';
 import { Inspection } from '../models/inspection.model';
 import { Evidence } from '../models/evidence.model';
@@ -15,6 +16,7 @@ import {
 async function runAnomalyTests() {
   console.log('🧪 Starting NIRIKSHAN Phase 8: AI & Explainable Anomaly Analytics Integration Tests...');
   await connectDatabase();
+  await seedData();
 
   const app = createApp();
   const server = http.createServer(app);

@@ -89,6 +89,7 @@ import { CameraStreamModal } from './components/common/CameraStreamModal';
 import { AddOrganizationModal } from './components/modals/AddOrganizationModal';
 import { AddProjectModal } from './components/modals/AddProjectModal';
 import { InstitutionsView } from './components/views/InstitutionsView';
+import { GovernmentFooter } from './components/common/GovernmentFooter';
 
 // @ts-ignore
 import DataIntegrityWorkspace from './components/attendance/DataIntegrityWorkspace.jsx';
@@ -765,6 +766,10 @@ export function App() {
         onOpenSessions={() => setSessionsModalOpen(true)}
         onOpenPersonaSwitcher={() => setPersonaSwitcherOpen(true)}
         onGoHome={() => setActiveTab(homeTab)}
+        onSkipToContent={() => {
+          const el = document.getElementById('main-content');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }}
       />
 
       <div className="flex-1 flex overflow-hidden">
@@ -777,7 +782,7 @@ export function App() {
         />
 
         {/* Center Main Stage Content */}
-        <main className="flex-1 min-w-0 p-6 overflow-y-auto bg-[#f3f6fb]">
+        <main id="main-content" className="flex-1 min-w-0 p-6 overflow-y-auto bg-[#f3f6fb] flex flex-col justify-between">
           {/* Role-specific welcome banner + quick tiles (shown on each role's home view) */}
           {activeTab === homeTab && (
             <PortalHero kind={portalKind} activeTab={activeTab} onSelectTab={setActiveTab} />
@@ -1399,6 +1404,11 @@ export function App() {
               )}
             </>
           )}
+
+          {/* Official Government of India & NIC Footer */}
+          <div className="mt-12 -mx-6 -mb-6">
+            <GovernmentFooter />
+          </div>
         </main>
       </div>
 

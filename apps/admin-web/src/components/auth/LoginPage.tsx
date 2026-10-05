@@ -12,6 +12,8 @@ import {
   Zap,
 } from 'lucide-react';
 import { PortalEmblem } from '../common/Topbar';
+import { GIGWTopStrip } from '../common/GIGWTopStrip';
+import { GovernmentFooter } from '../common/GovernmentFooter';
 
 const QUICK_LOGIN_PRESETS = [
   {
@@ -80,28 +82,39 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#f3f6fb] text-[#0f2147] flex flex-col font-sans">
-      {/* Identity strip */}
-      <div className="bg-white border-b border-[#d6deec] px-6 h-[4.25rem] flex items-center justify-between shadow-sm">
+      {/* 🇮🇳 GIGW 3.0 Standard Accessibility & Tricolor Banner */}
+      <GIGWTopStrip />
+
+      {/* Main White Identity Strip */}
+      <div className="bg-white border-b border-[#d6deec] px-6 h-[4.5rem] flex items-center justify-between shadow-sm">
         <PortalEmblem />
-        <div className="hidden md:block px-5 py-1.5 rounded-xl bg-white border border-[#d6deec] shadow-sm text-sm font-bold text-[#0f2147]">
-          NIRIKSHAN Monitoring &amp; Intelligence Portal
+        <div className="hidden md:flex flex-col items-center">
+          <div className="px-5 py-1.5 rounded-xl bg-white border border-[#b7c3d8] shadow-sm text-sm font-extrabold text-[#0b2a6b] flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>NIRIKSHAN</span>
+            <span className="text-slate-400 font-normal">|</span>
+            <span className="text-[12px] font-semibold text-[#0f2147]">Centralised Monitoring &amp; Inspection Portal</span>
+          </div>
+          <div className="text-[9.5px] text-[#4d5d7c] font-medium mt-0.5">
+            Ministry of Social Justice and Empowerment, Government of India
+          </div>
         </div>
-        <div className="hidden lg:block text-right leading-tight">
+        <div className="hidden lg:block text-right leading-tight select-none">
           <div className="text-[11px] font-bold text-[#0b2a6b]">Azadi Ka Amrit Mahotsav</div>
-          <div className="text-[11px] text-[#f58a3c] font-semibold">Digital India &bull; Sunishchit Nirikshan</div>
+          <div className="text-[10px] text-[#f58a3c] font-semibold">Digital India • Sunishchit Nirikshan</div>
         </div>
       </div>
 
-      {/* Navy bar */}
+      {/* Official Navy Sub-Bar */}
       <div className="h-12 bg-[#0b2a6b] flex items-center justify-between pr-4 shadow-sm">
         <div className="h-full flex items-center">
           <span className="h-full px-5 flex items-center gap-1.5 bg-[#f58a3c] text-white text-xs font-bold">
             <Home className="w-3.5 h-3.5" /> Home
           </span>
-          <span className="px-5 text-xs text-white/90 font-medium">Official sign-in required</span>
+          <span className="px-5 text-xs text-white/95 font-semibold">Official Sign-In Gateway (e-Pramaan / Role Credentials)</span>
         </div>
-        <span className="h-8 px-4 rounded-lg bg-[#f58a3c] text-white text-xs font-bold flex items-center gap-1.5">
-          <LogIn className="w-3.5 h-3.5" /> Login
+        <span className="h-8 px-4 rounded-lg bg-[#f58a3c] text-white text-xs font-bold flex items-center gap-1.5 shadow-sm">
+          <LogIn className="w-3.5 h-3.5" /> Authorized Login
         </span>
       </div>
 
@@ -275,10 +288,7 @@ export const LoginPage: React.FC = () => {
         </div>
       </div>
 
-      <footer className="bg-[#0b2a6b] text-white/90 text-[11px] px-6 py-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#071d4d] mt-auto">
-        <div>&copy; Department of Social Justice &amp; Empowerment, Government of India &bull; NIRIKSHAN</div>
-        <div>Security policy &bull; Privacy charter &bull; Hosted on NIC / C-DAC infrastructure</div>
-      </footer>
+      <GovernmentFooter />
     </div>
   );
 };

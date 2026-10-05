@@ -2,6 +2,7 @@ import http from 'http';
 import crypto from 'crypto';
 import { createApp } from '../app';
 import { connectDatabase, disconnectDatabase } from '../config/database';
+import { seedData } from '../seed/seed';
 import { Project } from '../models/project.model';
 import { Inspection } from '../models/inspection.model';
 import { Evidence } from '../models/evidence.model';
@@ -10,6 +11,7 @@ import { EvidenceType, InspectionStatus, UserRole } from '@nirikshan/shared-type
 async function runEvidenceTests() {
   console.log('🧪 Starting NIRIKSHAN Phase 5: Evidence & Storage Abstraction Integration Tests...');
   await connectDatabase();
+  await seedData();
 
   const app = createApp();
   const server = http.createServer(app);

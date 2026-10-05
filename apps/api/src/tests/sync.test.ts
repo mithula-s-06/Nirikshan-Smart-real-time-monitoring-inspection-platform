@@ -1,6 +1,7 @@
 import http from 'http';
 import { createApp } from '../app';
 import { connectDatabase, disconnectDatabase } from '../config/database';
+import { seedData } from '../seed/seed';
 import { Project } from '../models/project.model';
 import { Inspection } from '../models/inspection.model';
 import { IdempotencyKey } from '../models/idempotencyKey.model';
@@ -13,6 +14,7 @@ import {
 async function runSyncTests() {
   console.log('🧪 Starting NIRIKSHAN Phase 6: Offline Sync & Idempotency Integration Tests...');
   await connectDatabase();
+  await seedData();
 
   const app = createApp();
   const server = http.createServer(app);

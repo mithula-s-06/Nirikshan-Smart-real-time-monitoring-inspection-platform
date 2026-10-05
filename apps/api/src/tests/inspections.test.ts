@@ -1,11 +1,13 @@
 import http from 'http';
 import { createApp } from '../app';
 import { connectDatabase, disconnectDatabase } from '../config/database';
+import { seedData } from '../seed/seed';
 import { InspectionStatus, InspectionType, ChecklistItemType } from '@nirikshan/shared-types';
 
 async function runInspectionTests() {
   console.log('🧪 Starting NIRIKSHAN Inspection Lifecycle & Random Assignment Integration Tests...');
   await connectDatabase();
+  await seedData();
 
   const app = createApp();
   const server = http.createServer(app);
