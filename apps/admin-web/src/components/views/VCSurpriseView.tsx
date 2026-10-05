@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Video, ShieldAlert, CheckCircle, AlertTriangle, Phone, Radio, Users, Play, Sparkles, Building, Camera, Eye, Smartphone, Wifi, Settings } from 'lucide-react';
 import { StatusBadge } from '../common/StatusBadge';
 
@@ -32,6 +32,12 @@ export const VCSurpriseView: React.FC<VCSurpriseViewProps> = ({
   const [q3, setQ3] = useState(true);
   const [vcNotes, setVcNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!selectedProjectId && projects.length > 0) {
+      setSelectedProjectId(projects[0]?.id || projects[0]?._id || '');
+    }
+  }, [projects, selectedProjectId]);
 
   // Mobile camera configuration state
   const defaultEnvUrl = (import.meta as any).env?.VITE_MOBILE_CCTV_STREAM_URL || 'http://10.146.163.75:8080/video';

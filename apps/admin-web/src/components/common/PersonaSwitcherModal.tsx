@@ -51,7 +51,7 @@ export const PersonaSwitcherModal: React.FC<PersonaSwitcherModalProps> = ({ isOp
       email: 'ngo.admin1@nirikshan.gov.in',
       role: 'NGO_ADMIN',
       designation: 'Institution Head',
-      scope: 'ORGANIZATION (Pragati Vocational)',
+      scope: 'ORGANIZATION (Premier Vocational)',
       scopeDesc: 'Restricted strictly to own institution & beneficiaries',
       icon: Users,
       color: 'text-emerald-400',
@@ -69,7 +69,7 @@ export const PersonaSwitcherModal: React.FC<PersonaSwitcherModalProps> = ({ isOp
       border: 'hover:border-sky-500/60',
     },
     {
-      name: 'Vikas Patil',
+      name: 'Vivek Patil',
       email: 'beneficiary@nirikshan.gov.in',
       role: 'BENEFICIARY',
       designation: 'Citizen Beneficiary',

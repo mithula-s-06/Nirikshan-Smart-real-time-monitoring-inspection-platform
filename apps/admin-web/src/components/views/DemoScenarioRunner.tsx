@@ -134,7 +134,7 @@ export const DemoScenarioRunner: React.FC<DemoScenarioRunnerProps> = ({ onSelect
                 <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-mono font-bold">
                   SCENARIO 1: NORMAL & COMPLIANT
                 </span>
-                <span className="text-slate-400">&bull; Pragati Model Vocational Institute (Delhi)</span>
+                <span className="text-slate-400">&bull; Apex Model Vocational Institute (Delhi)</span>
               </div>
               <button
                 onClick={() => onSelectTab('command')}
@@ -178,7 +178,7 @@ export const DemoScenarioRunner: React.FC<DemoScenarioRunnerProps> = ({ onSelect
                 <span className="px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800 font-mono font-bold">
                   SCENARIO 3: FINANCIAL BURN MISMATCH
                 </span>
-                <span className="text-slate-400">&bull; Kaushalya Kendra Hinjawadi (Pune)</span>
+                <span className="text-slate-400">&bull; National Youth Skill Training Center Hinjawadi (Pune)</span>
               </div>
               <button
                 onClick={() => onSelectTab('financial')}
@@ -210,7 +210,7 @@ export const DemoScenarioRunner: React.FC<DemoScenarioRunnerProps> = ({ onSelect
               </button>
             </div>
             <p className="text-slate-300 leading-relaxed">
-              Demonstrates multi-dataset cross-validation across Rules 2–8. Detects <code>Vikas Madhukar Patil</code> with 3 repeated document verification failures in 60 days (Rule 2), alongside a suspicious fuzzy profile duplicate <code>Vikash M. Patil</code> (Rule 5 similarity score 0.88), while suppressing legitimate twin lookalikes.
+              Demonstrates multi-dataset cross-validation across Rules 2–8. Detects <code>Vivek Madhukar Patil</code> with 3 repeated document verification failures in 60 days (Rule 2), alongside a suspicious fuzzy profile duplicate <code>Vivek M. Patil</code> (Rule 5 similarity score 0.88), while suppressing legitimate twin lookalikes.
             </p>
           </div>
         )}

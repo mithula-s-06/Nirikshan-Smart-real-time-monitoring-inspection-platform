@@ -86,7 +86,8 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
   onSubmitChecklist,
 }) => {
   const allMissions = inspections.length > 0 ? inspections : MOCK_MISSIONS;
-  const currentMission = allMissions[0];
+  const [selectedMissionId, setSelectedMissionId] = useState<string>(allMissions[0]?.id || allMissions[0]?._id || 'insp_001');
+  const currentMission = allMissions.find((m: any) => m.id === selectedMissionId || m._id === selectedMissionId) || allMissions[0];
 
   const [simulatedDistance, setSimulatedDistance] = useState<number>(45);
   const [isGpsVerified, setIsGpsVerified] = useState<boolean>(true);
@@ -188,7 +189,14 @@ export const InspectorDashboard: React.FC<InspectorDashboardProps> = ({
             const priorityColor = mission.priority === 'HIGH' ? 'text-red-400 bg-red-950/40 border-red-900/60' : mission.priority === 'MEDIUM' ? 'text-amber-400 bg-amber-950/40 border-amber-900/60' : 'text-emerald-400 bg-emerald-950/40 border-emerald-900/60';
             const typeLabel = mission.type === 'SURPRISE' ? 'Surprise' : mission.type === 'FOLLOW_UP' ? 'Follow-Up' : 'Scheduled';
             return (
-              <div key={mission.id || idx} className="p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-sky-800/60 transition cursor-pointer" onClick={() => onSelectSubTab('inspector_today')}>
+              <div
+                key={mission.id || idx}
+                className="p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-sky-800/60 transition cursor-pointer"
+                onClick={() => {
+                  setSelectedMissionId(mission.id || mission._id);
+                  onSelectSubTab('inspector_today');
+                }}
+              >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${priorityColor}`}>{mission.priority}</span>

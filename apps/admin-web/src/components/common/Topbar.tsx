@@ -36,16 +36,13 @@ export const PortalEmblem: React.FC<{ compact?: boolean }> = ({ compact }) => (
   <div className="flex items-center gap-3 bg-white pr-4 select-none">
     <NationalEmblem size={compact ? 'sm' : 'md'} variant="navy" showMotto={true} />
     <div className="leading-tight">
-      <div className="text-[12px] font-bold text-[#0b2a6b] tracking-wide">
-        सामाजिक न्याय और अधिकारिता विभाग
-      </div>
-      <div className="text-[11.5px] font-bold text-[#0f2147] tracking-tight">
+      <div className="text-[13px] font-extrabold text-[#0b2a6b] tracking-tight">
         Department of Social Justice and Empowerment
       </div>
-      <div className="text-[9.5px] text-[#4d5d7c] font-medium flex items-center gap-1">
-        <span>Ministry of Social Justice and Empowerment</span>
+      <div className="text-[10px] text-[#4d5d7c] font-medium flex items-center gap-1 mt-0.5">
+        <span>Ministry of Social Justice &amp; Empowerment</span>
         <span>•</span>
-        <span className="font-semibold text-[#0b2a6b]">Govt. of India</span>
+        <span className="font-bold text-[#0b2a6b]">Government of India</span>
       </div>
     </div>
   </div>

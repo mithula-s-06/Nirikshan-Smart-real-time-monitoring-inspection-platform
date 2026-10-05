@@ -46,6 +46,15 @@ export default function CaptureWorkflow({ onSessionFinalized }) {
 
   useEffect(() => {
     fetchUnits();
+    return () => {
+      if (videoRef.current && videoRef.current.srcObject) {
+        try {
+          videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
   }, []);
 
   useEffect(() => {

@@ -86,8 +86,8 @@ def generate_synthetic_dataset(num_units: int = 5) -> Dict[str, Any]:
 
     units = [
         {"id": "unit_hostel_01", "name": "St. Jude Youth Residential Hostel", "type": "Hostel", "sanctionedStrength": 30, "lat": 12.9716, "lng": 77.5946, "radiusMeters": 200},
-        {"id": "unit_senior_01", "name": "Vridhashram Senior Citizen Care", "type": "Senior Home", "sanctionedStrength": 40, "lat": 22.7196, "lng": 75.8577, "radiusMeters": 250},
-        {"id": "unit_school_01", "name": "Pragati Residential Vocational Institute", "type": "School", "sanctionedStrength": 50, "lat": 28.6139, "lng": 77.2090, "radiusMeters": 300}
+        {"id": "unit_senior_01", "name": "Elders Home Senior Citizen Care", "type": "Senior Home", "sanctionedStrength": 40, "lat": 22.7196, "lng": 75.8577, "radiusMeters": 250},
+        {"id": "unit_school_01", "name": "Premier Residential Vocational Institute", "type": "School", "sanctionedStrength": 50, "lat": 28.6139, "lng": 77.2090, "radiusMeters": 300}
     ]
 
     return {

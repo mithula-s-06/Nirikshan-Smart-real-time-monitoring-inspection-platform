@@ -8,7 +8,6 @@ interface GIGWTopStripProps {
 export const GIGWTopStrip: React.FC<GIGWTopStripProps> = ({ onSkipToContent }) => {
   const [fontSizeLevel, setFontSizeLevel] = useState<number>(0); // -1 (small), 0 (normal), 1 (large)
   const [highContrast, setHighContrast] = useState<boolean>(false);
-  const [language, setLanguage] = useState<'EN' | 'HI'>('EN');
   const [screenReaderNotice, setScreenReaderNotice] = useState<boolean>(false);
 
   // Apply font size adjustment to document root
@@ -53,18 +52,14 @@ export const GIGWTopStrip: React.FC<GIGWTopStripProps> = ({ onSkipToContent }) =
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-1 flex flex-wrap items-center justify-between gap-2">
-        {/* Left: Official Government of India & Ministry Bilingual Identifiers */}
+        {/* Left: Official Government of India & Ministry Identifiers */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 font-medium tracking-tight">
-            <span className="text-[#FF9933] font-bold text-[10.5px]">भारत सरकार</span>
-            <span className="text-slate-400">|</span>
-            <span className="text-slate-100 font-semibold text-[10.5px]">Government of India</span>
+            <span className="text-[#FF9933] font-extrabold text-[11px] tracking-wide">GOVERNMENT OF INDIA</span>
           </div>
           <span className="hidden sm:inline text-slate-500">•</span>
           <div className="hidden md:flex items-center gap-1.5 text-slate-300">
-            <span>सामाजिक न्याय और अधिकारिता मंत्रालय</span>
-            <span className="text-slate-500">|</span>
-            <span className="text-slate-300">Ministry of Social Justice and Empowerment</span>
+            <span className="text-slate-200 font-semibold">Ministry of Social Justice and Empowerment</span>
           </div>
         </div>
 
@@ -147,29 +142,11 @@ export const GIGWTopStrip: React.FC<GIGWTopStripProps> = ({ onSkipToContent }) =
 
           <span className="text-slate-600">|</span>
 
-          {/* Bilingual Language Switcher */}
-          <div className="flex items-center gap-1">
+          {/* Official Language Indicator */}
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#142852] border border-[#233d7b]">
             <Globe2 className="w-3 h-3 text-emerald-400" />
-            <button
-              type="button"
-              onClick={() => setLanguage('EN')}
-              className={`px-1 py-0.5 rounded font-bold transition ${
-                language === 'EN' ? 'text-amber-400 underline' : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              English
-            </button>
-            <span className="text-slate-600">/</span>
-            <button
-              type="button"
-              onClick={() => setLanguage('HI')}
-              className={`px-1 py-0.5 rounded font-bold transition ${
-                language === 'HI' ? 'text-amber-400 underline' : 'text-slate-300 hover:text-white'
-              }`}
-              title="हिन्दी संस्करण"
-            >
-              हिन्दी
-            </button>
+            <span className="font-bold text-amber-300 text-[10.5px]">English</span>
+            <span className="text-[9.5px] text-slate-400">(Official)</span>
           </div>
         </div>
       </div>

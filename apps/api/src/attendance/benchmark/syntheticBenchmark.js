@@ -153,7 +153,7 @@ export function generateBenchmarkDataset() {
     // Unit 4-POS: Significant shift without known reason (TVD > 25%, SC dropped to 0%, General up 30%)
     {
       id: 'unit_r4_pos',
-      name: 'Adarsh Residential Institute',
+      name: 'Model Residential Institute',
       district: 'Jaipur',
       knownEvent: null,
       baselineDistribution: { 'General': 0.30, 'OBC': 0.30, 'SC': 0.25, 'ST': 0.15 }

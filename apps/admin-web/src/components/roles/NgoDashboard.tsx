@@ -43,7 +43,15 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
   onRefreshData,
 }) => {
   const orgName = organization?.name || 'National Skill Training Institute Pune';
-  const myProjects = projects.filter((p) => p.organizationId?.id === organization?.id || true);
+  const myProjects = projects.filter(
+    (p) =>
+      !organization?.id && !organization?._id
+        ? true
+        : p.organizationId?.id === organization?.id ||
+          p.organizationId?._id === organization?._id ||
+          p.organizationId === organization?.id ||
+          p.organizationId === organization?._id,
+  );
 
   const [uploadedCert, setUploadedCert] = useState<boolean>(false);
   const [activeInvoiceFilter, setActiveInvoiceFilter] = useState<'ALL' | 'VERIFIED' | 'PENDING'>('ALL');
@@ -53,7 +61,7 @@ export const NgoDashboard: React.FC<NgoDashboardProps> = ({
     { id: 'INV-2026-082', vendor: 'Apex IT Systems (15 Refurbished Desktops)', head: 'IT Training Kits', amount: '₹3,75,000', date: '15 Sep 2026', status: 'VERIFIED', geoPhoto: 'Verified' },
     { id: 'INV-2026-083', vendor: 'Pune Civil Contractors (Hostel Repairs)', head: 'Infrastructure', amount: '₹4,80,000', date: '02 Sep 2026', status: 'UNDER_REVIEW', geoPhoto: 'Required' },
     { id: 'INV-2026-084', vendor: 'Direct Student Bank Transfers (Stipend Sept)', head: 'Beneficiary Stipend', amount: '₹1,50,000', date: '01 Oct 2026', status: 'VERIFIED', geoPhoto: 'DBT Log' },
-    { id: 'INV-2026-085', vendor: 'Shree Sai Utilities & Power', head: 'Admin Overheads', amount: '₹45,000', date: '03 Oct 2026', status: 'PENDING', geoPhoto: 'N/A' },
+    { id: 'INV-2026-085', vendor: 'City Power & Utilities', head: 'Admin Overheads', amount: '₹45,000', date: '03 Oct 2026', status: 'PENDING', geoPhoto: 'N/A' },
   ];
 
   return (

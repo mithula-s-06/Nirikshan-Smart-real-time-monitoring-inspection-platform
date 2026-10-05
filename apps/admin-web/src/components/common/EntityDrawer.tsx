@@ -216,10 +216,10 @@ export const EntityDrawer: React.FC<EntityDrawerProps> = ({
                       )}
                     </div>
                     <div className="text-slate-200 font-semibold">
-                      {data.organizationId?.name || data.organizationName || 'Gramin Vikas Sahayog Foundation'}
+                      {data.organizationId?.name || data.organizationName || 'Rural Development Welfare Foundation'}
                     </div>
                     <div className="text-[11px] text-slate-400 font-mono">
-                      Code: {data.organizationId?.code || 'GVSF-NGO'} &bull; Type: {data.organizationId?.type || 'NGO'}
+                      Code: {data.organizationId?.code || 'RDWF-NGO'} &bull; Type: {data.organizationId?.type || 'NGO'}
                     </div>
                   </div>
 
@@ -307,7 +307,7 @@ export const EntityDrawer: React.FC<EntityDrawerProps> = ({
                         <div className="flex items-center gap-2">
                           <StatusBadge status={cam.status} />
                           <button
-                            onClick={() => onOpenStreamModal ? onOpenStreamModal(cam) : alert(`Opening live RTSP feed for ${cam.locationName}`)}
+                            onClick={() => onOpenStreamModal ? onOpenStreamModal(cam) : console.log(`Opening stream for ${cam.locationName || cam.name}`)}
                             className="px-2.5 py-1 rounded bg-sky-600 hover:bg-sky-500 text-white font-medium text-[11px] flex items-center gap-1 transition shadow"
                           >
                             <Eye className="w-3 h-3" /> Live
@@ -545,7 +545,7 @@ export const EntityDrawer: React.FC<EntityDrawerProps> = ({
                     )}
                   </div>
                   <div className="font-semibold text-slate-200">
-                    {data.linkedProject?.name || data.projectName || 'PMKVY Multi-Skill Training Center Aundh'}
+                    {data.linkedProject?.name || data.projectName || 'National Multi-Skill Training Center Aundh'}
                   </div>
                   <div className="text-[11px] text-slate-400 font-mono">
                     Code: {data.linkedProject?.code || 'PRJ-PUN-001'} &bull; Radius: {data.linkedProject?.geofenceRadiusMeters || 200}m
@@ -568,10 +568,10 @@ export const EntityDrawer: React.FC<EntityDrawerProps> = ({
                     )}
                   </div>
                   <div className="font-semibold text-slate-200">
-                    {data.linkedOrg?.name || data.organizationName || 'Gramin Vikas Sahayog Foundation'}
+                    {data.linkedOrg?.name || data.organizationName || 'Rural Development Welfare Foundation'}
                   </div>
                   <div className="text-[11px] text-slate-400 font-mono">
-                    [{data.linkedOrg?.type || 'NGO'}] {data.linkedOrg?.code || 'GVSF-NGO'}
+                    [{data.linkedOrg?.type || 'NGO'}] {data.linkedOrg?.code || 'RDWF-NGO'}
                   </div>
                 </div>
               </div>
@@ -611,7 +611,7 @@ export const EntityDrawer: React.FC<EntityDrawerProps> = ({
                   <span className="font-mono text-slate-200">{data.code}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 block">NITI Aayog Darpan ID</span>
+                  <span className="text-slate-500 block">National NGO Registry ID</span>
                   <span className="font-mono text-slate-200">{data.darpanId || `IND-${data.state?.slice(0, 2).toUpperCase()}-2024-${data.code}`}</span>
                 </div>
                 <div>

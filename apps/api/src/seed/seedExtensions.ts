@@ -68,7 +68,7 @@ export async function seedExtensions() {
       email: 'ngo.admin1@nirikshan.gov.in',
       password: 'Password@123',
       role: UserRole.NGO_ADMIN,
-      designation: 'Institution Head (Pragati Vocational)',
+      designation: 'Institution Head (Premier Vocational)',
       status: UserStatus.ACTIVE,
       phoneNumber: '+91-9876543214',
       state: 'Maharashtra',
@@ -86,7 +86,7 @@ export async function seedExtensions() {
       district: 'Pune',
     },
     {
-      name: 'Vikas Patil (Scheme Beneficiary)',
+      name: 'Vivek Patil (Scheme Beneficiary)',
       email: 'beneficiary@nirikshan.gov.in',
       password: 'Password@123',
       role: UserRole.BENEFICIARY,
@@ -178,9 +178,9 @@ export async function seedExtensions() {
 
       // Extract Scheme if present
       let scheme = 'DoSJE Central Welfare Assistance';
-      if (/ADIP/i.test(rawAction)) scheme = 'ADIP Scheme for Divyangjan';
+      if (/ADIP/i.test(rawAction)) scheme = 'Assistance to Persons with Disabilities Scheme (ADIP)';
       else if (/Street Children/i.test(rawAction)) scheme = 'Integrated Welfare Scheme for Street Children';
-      else if (/Older Person/i.test(rawAction)) scheme = 'Atal Vayo Abhyuday Yojana (Older Persons)';
+      else if (/Older Person/i.test(rawAction)) scheme = 'National Senior Citizens Welfare Scheme';
       else if (/DRUG|DP-I|DP-III/i.test(rawAction)) scheme = 'National Action Plan for Drug Demand Reduction';
       else if (/MC/i.test(rawAction)) scheme = 'Pre-Examination Coaching for Minority & Backward Classes';
       else if (/DD-II|SCD-III/i.test(rawAction)) scheme = 'Special Central Assistance for SC Welfare';
@@ -273,7 +273,7 @@ export async function seedExtensions() {
       },
       {
         beneficiaryId: 'BEN-2026-PUN-003',
-        name: 'Vikas Madhukar Patil',
+        name: 'Vivek Madhukar Patil',
         dateOfBirth: '2004-11-03',
         age: 22,
         guardianName: 'Madhukar Patil',
@@ -287,7 +287,7 @@ export async function seedExtensions() {
         organizationId: orgs[0]._id,
         projectId: projects[0]._id,
         unitId: 'unit_st_jude',
-        scheme: 'DDU-GKY Rural Livelihoods Scheme',
+        scheme: 'National Rural Youth Livelihoods Scheme (DDU-GKY)',
         enrollmentStartDate: '2025-07-15',
         enrollmentEndDate: '2026-12-31',
         eligibilityStatus: BeneficiaryEligibility.UNDER_REVIEW,
@@ -299,7 +299,7 @@ export async function seedExtensions() {
       },
       {
         beneficiaryId: 'BEN-2026-PUN-004',
-        name: 'Vikash M. Patil',
+        name: 'Vivek M. Patil',
         dateOfBirth: '2004-11-03',
         age: 22,
         guardianName: 'Madhukar Patil',
@@ -494,8 +494,8 @@ export async function seedExtensions() {
         phoneHash: '4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a',
         organizationId: orgs[1]?._id || orgs[0]._id,
         projectId: projects[1]?._id || projects[0]._id,
-        unitId: 'unit_pragati',
-        scheme: 'PM-DAKSH Skilling Initiative',
+        unitId: 'unit_apex',
+        scheme: 'National Skill Initiative (PM-DAKSH)',
         enrollmentStartDate: '2024-04-01',
         enrollmentEndDate: '2025-03-31',
         eligibilityStatus: BeneficiaryEligibility.INELIGIBLE,

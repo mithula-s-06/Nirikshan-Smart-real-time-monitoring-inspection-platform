@@ -20,7 +20,7 @@ export const BeneficiaryDashboard: React.FC<BeneficiaryDashboardProps> = ({
     age: 21,
     guardianName: 'Suresh Sharma',
     category: 'OBC',
-    scheme: 'DDU-GKY Rural Livelihoods Scheme',
+    scheme: 'National Rural Youth Livelihoods Scheme (DDU-GKY)',
     facility: 'St. Jude Residential Youth Hostel, Pune',
     enrollmentStartDate: '01 June 2025',
     maskedPhone: '98******12',

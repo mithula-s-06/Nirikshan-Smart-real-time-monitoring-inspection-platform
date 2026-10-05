@@ -1,4 +1,4 @@
-# 🇮🇳 NIRIKSHAN (निरीक्षण) — Smart Real-Time Monitoring & Inspection Platform
+# 🇮🇳 NIRIKSHAN — Smart Real-Time Monitoring & Inspection Platform
 > **Smart India Hackathon (SIH 2026)** | Problem Statement: AI-Assisted Geofenced Monitoring & Anomaly Detection for Government Projects & Beneficiaries
 
 ---

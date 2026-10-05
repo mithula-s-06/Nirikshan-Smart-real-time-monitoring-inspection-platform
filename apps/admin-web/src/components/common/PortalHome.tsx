@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { UserRole, Permissions } from '@nirikshan/shared-types';
+import { NationalEmblem } from './NationalEmblem';
 
 export type PortalKind = 'official' | 'ngo' | 'inspector' | 'beneficiary';
 
@@ -112,8 +113,8 @@ export const PortalHero: React.FC<{
             {user?.designation ? <> &bull; {user.designation}</> : null}
           </div>
         </div>
-        <div className="hidden md:flex w-20 h-20 rounded-full border-2 border-white/40 items-center justify-center bg-white/10 shrink-0">
-          <Landmark className="w-10 h-10 text-white" />
+        <div className="hidden md:flex w-20 h-20 rounded-full border-2 border-white/40 items-center justify-center bg-white/10 shrink-0 shadow-inner">
+          <NationalEmblem size="lg" variant="white" showMotto={false} />
         </div>
       </div>
 

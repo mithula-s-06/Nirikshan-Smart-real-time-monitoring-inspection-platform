@@ -25,7 +25,7 @@ export function seedDatabase() {
     id: 'unit_govt_home',
     name: 'Govt. Welfare Children Home (North)',
     type: 'Child Welfare Home',
-    address: 'Plot 12, Vikas Nagar',
+    address: 'Plot 12, Model Town',
     sanctionedStrength: 35,
     activeParticipantsCount: 40,
     minVerificationRatio: 0.8,
@@ -37,8 +37,8 @@ export function seedDatabase() {
   });
 
   const unit3 = db.insert('units', {
-    id: 'unit_pragati',
-    name: 'Pragati Model Vocational Institute',
+    id: 'unit_apex',
+    name: 'Apex Model Vocational Institute',
     type: 'Institute',
     address: 'Industrial Area Phase 2',
     sanctionedStrength: 50,

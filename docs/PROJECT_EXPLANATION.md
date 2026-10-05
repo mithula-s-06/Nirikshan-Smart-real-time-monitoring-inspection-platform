@@ -1,4 +1,4 @@
-# 🇮🇳 NIRIKSHAN (निरीक्षण) — Complete Project Documentation & Technical Dossier
+# 🇮🇳 NIRIKSHAN — Complete Project Documentation & Technical Dossier
 > **Platform**: Smart Real-Time Monitoring, Surprise Inspection & AI Fraud Prevention Platform  
 > **Initiative**: Smart India Hackathon (SIH 2026)  
 > **Nodal Ministry**: Department of Social Justice & Empowerment (DoSJE), Government of India  
@@ -36,7 +36,7 @@ Government departments and social welfare ministries disburse tens of thousands 
 5. **Physical CCTV Hardware Deficit**: Many remote rural facilities lack expensive industrial IP cameras, making live remote spot-checks difficult.
 
 ### The Solution: NIRIKSHAN
-**NIRIKSHAN** (meaning *vigilant inspection* in Sanskrit & Hindi) is an end-to-end, real-time monitoring and fraud adjudication ecosystem combining:
+**NIRIKSHAN** (Smart Real-Time Monitoring & Inspection Platform) is an end-to-end, real-time monitoring and fraud adjudication ecosystem combining:
 - **Server-Side Geospatial Geofencing**: Mandatory GPS lock within 250 meters of the facility to unlock digital inspection forms.
 - **Computer Vision & Face Biometrics**: OpenCV YuNet + SFace neural networks analyzing group attendance photos against 128-dimensional biometric embeddings.
 - **Rules 1–30 Automated Anomaly Engine**: Continuous statistical surveillance identifying duplicate invoices, sudden attendance spikes, CCTV downtime, and progress-spending deficits.

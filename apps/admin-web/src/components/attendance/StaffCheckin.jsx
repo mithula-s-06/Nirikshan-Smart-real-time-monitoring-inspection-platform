@@ -25,6 +25,15 @@ export default function StaffCheckin() {
   useEffect(() => {
     fetchUnits();
     fetchCheckins();
+    return () => {
+      if (videoRef.current && videoRef.current.srcObject) {
+        try {
+          videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
   }, []);
 
   const fetchUnits = async () => {

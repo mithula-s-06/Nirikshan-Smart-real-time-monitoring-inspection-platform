@@ -136,8 +136,25 @@ export function applyDataScope(
   };
 }
 
+const ROLE_ALIASES: Record<string, string[]> = {
+  SUPER_ADMIN: ['SYSTEM_SUPER_ADMIN', 'SUPER_ADMIN'],
+  SYSTEM_SUPER_ADMIN: ['SUPER_ADMIN', 'SYSTEM_SUPER_ADMIN'],
+  DEPARTMENT_OFFICIAL: ['DOSJE_HQ_OFFICIAL', 'DOSJE_HQ_ADMIN', 'DEPARTMENT_OFFICIAL'],
+  DOSJE_HQ_OFFICIAL: ['DEPARTMENT_OFFICIAL', 'DOSJE_HQ_ADMIN', 'DOSJE_HQ_OFFICIAL'],
+  DOSJE_HQ_ADMIN: ['DEPARTMENT_OFFICIAL', 'DOSJE_HQ_OFFICIAL', 'DOSJE_HQ_ADMIN'],
+  STATE_AUTHORITY: ['DOSJE_STATE_OFFICIAL', 'STATE_AUTHORITY'],
+  DOSJE_STATE_OFFICIAL: ['STATE_AUTHORITY', 'DOSJE_STATE_OFFICIAL'],
+  DISTRICT_AUTHORITY: ['DOSJE_DISTRICT_OFFICIAL', 'DISTRICT_AUTHORITY'],
+  DOSJE_DISTRICT_OFFICIAL: ['DISTRICT_AUTHORITY', 'DOSJE_DISTRICT_OFFICIAL'],
+  PMU_OFFICER: ['PMU_MANAGER', 'PMU_OFFICER', 'DOSJE_HQ_OFFICIAL', 'SUPER_ADMIN'],
+  INSPECTOR: ['PMU_INSPECTOR', 'INSPECTOR'],
+  PMU_INSPECTOR: ['INSPECTOR', 'PMU_INSPECTOR'],
+  NGO_ADMIN: ['INSTITUTE_ADMIN', 'NGO_ADMIN'],
+  INSTITUTE_ADMIN: ['NGO_ADMIN', 'INSTITUTE_ADMIN'],
+};
+
 /**
- * Role-Based Access Control Middleware (RBAC) - Backwards compatible
+ * Role-Based Access Control Middleware (RBAC) - Backwards compatible with persona hierarchy
  */
 export function authorize(...allowedRoles: (UserRole | string)[]) {
   return (req: Request, _res: Response, next: NextFunction): void => {
@@ -146,7 +163,12 @@ export function authorize(...allowedRoles: (UserRole | string)[]) {
     }
 
     const userRoleStr = req.user.role as string;
-    const isAllowed = allowedRoles.some((r) => r.toString() === userRoleStr);
+    const isAllowed = allowedRoles.some((r) => {
+      const allowedStr = r.toString();
+      if (allowedStr === userRoleStr) return true;
+      const aliases = ROLE_ALIASES[allowedStr] || [];
+      return aliases.includes(userRoleStr);
+    });
 
     if (!isAllowed) {
       return next(

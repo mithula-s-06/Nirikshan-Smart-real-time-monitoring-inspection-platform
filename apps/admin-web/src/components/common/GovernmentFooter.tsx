@@ -37,16 +37,13 @@ export const GovernmentFooter: React.FC<GovernmentFooterProps> = ({ compact = fa
               <div className="flex items-start gap-3">
                 <NationalEmblem size="md" variant="white" showMotto={true} />
                 <div className="leading-tight">
-                  <div className="text-[12px] font-bold text-white tracking-wide">
-                    सामाजिक न्याय और अधिकारिता विभाग
-                  </div>
-                  <div className="text-[11px] font-bold text-amber-300">
+                  <div className="text-[12.5px] font-extrabold text-white tracking-wide">
                     Department of Social Justice and Empowerment
                   </div>
-                  <div className="text-[10px] text-slate-300 font-medium mt-0.5">
+                  <div className="text-[11px] font-bold text-amber-300 mt-0.5">
                     Ministry of Social Justice and Empowerment
                   </div>
-                  <div className="text-[10px] text-slate-400 font-semibold">
+                  <div className="text-[10px] text-slate-300 font-semibold">
                     Government of India
                   </div>
                 </div>
@@ -59,7 +56,7 @@ export const GovernmentFooter: React.FC<GovernmentFooterProps> = ({ compact = fa
               <div className="text-[11px] text-slate-400 space-y-1">
                 <div className="flex items-center gap-1.5 text-slate-300">
                   <Building className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  <span>Shastri Bhawan, Dr. Rajendra Prasad Road, New Delhi - 110001</span>
+                  <span>Central Secretariat Complex, Dr. Rajendra Prasad Road, New Delhi - 110001</span>
                 </div>
               </div>
             </div>
@@ -88,7 +85,7 @@ export const GovernmentFooter: React.FC<GovernmentFooterProps> = ({ compact = fa
                     rel="noopener noreferrer"
                     className="hover:text-amber-300 transition flex items-center justify-between group"
                   >
-                    <span>e-Anudaan NGO Grant Portal</span>
+                    <span>National NGO Grants Portal</span>
                     <ExternalLink className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition" />
                   </a>
                 </li>
@@ -110,7 +107,7 @@ export const GovernmentFooter: React.FC<GovernmentFooterProps> = ({ compact = fa
                     rel="noopener noreferrer"
                     className="hover:text-amber-300 transition flex items-center justify-between group"
                   >
-                    <span>PM-AJAY Adarsh Gram Yojana</span>
+                    <span>PM-AJAY (Model Village Program)</span>
                     <ExternalLink className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition" />
                   </a>
                 </li>
@@ -155,7 +152,7 @@ export const GovernmentFooter: React.FC<GovernmentFooterProps> = ({ compact = fa
 
                 <div className="p-2.5 rounded-lg bg-[#0e214d] border border-[#1d3d7d]">
                   <div className="font-bold text-white flex items-center justify-between">
-                    <span>National De-addiction (NAPDDR)</span>
+                    <span>National De-addiction Helpline</span>
                     <span className="text-emerald-400 font-mono text-xs">1800-11-0031</span>
                   </div>
                   <p className="text-[10px] text-slate-400 mt-0.5">Toll-free counseling &amp; rehabilitation support</p>
@@ -163,7 +160,7 @@ export const GovernmentFooter: React.FC<GovernmentFooterProps> = ({ compact = fa
 
                 <div className="p-2.5 rounded-lg bg-[#0e214d] border border-[#1d3d7d]">
                   <div className="font-bold text-white flex items-center justify-between">
-                    <span>Sugamya Bharat Divyangjan</span>
+                    <span>Accessible India (Disability Support)</span>
                     <span className="text-sky-400 font-mono text-xs">14488</span>
                   </div>
                   <p className="text-[10px] text-slate-400 mt-0.5">Accessibility infrastructure helpline</p>
@@ -186,8 +183,8 @@ export const GovernmentFooter: React.FC<GovernmentFooterProps> = ({ compact = fa
                   <span className="text-[9px] text-slate-400">Quality Verified</span>
                 </div>
                 <div className="p-2 rounded bg-[#0b1c42] border border-[#1c3973] flex flex-col items-center text-center">
-                  <span className="font-bold text-white">MeghRaj Cloud</span>
-                  <span className="text-[9px] text-slate-400">NIC GI-Cloud</span>
+                  <span className="font-bold text-white">NIC GI-Cloud</span>
+                  <span className="text-[9px] text-slate-400">National Cloud</span>
                 </div>
                 <div className="p-2 rounded bg-[#0b1c42] border border-[#1c3973] flex flex-col items-center text-center">
                   <span className="font-bold text-white">ISO 27001</span>

@@ -10,7 +10,7 @@ interface NationalEmblemProps {
 /**
  * State Emblem of India (Lion Capital of Ashoka)
  * With the four Asiatic lions back-to-back, Ashoka Chakra,
- * and the sacred motto "सत्यमेव जयते" (Truth Alone Triumphs).
+ * and the motto "Truth Alone Triumphs".
  */
 export const NationalEmblem: React.FC<NationalEmblemProps> = ({
   size = 'md',
@@ -58,7 +58,7 @@ export const NationalEmblem: React.FC<NationalEmblemProps> = ({
   return (
     <div
       className={`inline-flex flex-col items-center justify-center select-none ${className}`}
-      title="State Emblem of India — Satyameva Jayate"
+      title="State Emblem of India — Truth Alone Triumphs"
       aria-label="State Emblem of India"
     >
       <svg
@@ -152,19 +152,19 @@ export const NationalEmblem: React.FC<NationalEmblemProps> = ({
         <rect x="22" y="88" width="56" height="4" rx="1.5" fill={colors.primary} />
         <rect x="28" y="93" width="44" height="2.5" rx="1" fill={colors.primary} opacity="0.8" />
 
-        {/* Inscription: Satyameva Jayate (सत्यमेव जयते) */}
+        {/* Inscription: Truth Alone Triumphs (English Translation) */}
         {showMotto && (
           <text
             x="50"
-            y="108"
+            y="107"
             textAnchor="middle"
             fill={colors.motto}
-            fontSize="8.5"
-            fontFamily="'Noto Sans Devanagari', 'Mangal', 'Yash', sans-serif"
-            fontWeight="bold"
-            letterSpacing="0.8"
+            fontSize="6.2"
+            fontFamily="'Plus Jakarta Sans', sans-serif"
+            fontWeight="800"
+            letterSpacing="0.4"
           >
-            सत्यमेव जयते
+            TRUTH ALONE TRIUMPHS
           </text>
         )}
       </svg>

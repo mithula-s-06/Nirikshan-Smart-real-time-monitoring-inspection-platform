@@ -12,13 +12,13 @@ interface AddProjectModalProps {
 }
 
 const SCHEMES = [
-  'Pradhan Mantri Kaushal Vikas Yojana (PMKVY 4.0)',
-  'Ayushman Bharat Digital Mission (ABDM)',
-  'Jal Jeevan Mission (JJM)',
-  'Pradhan Mantri Anusuchit Jaati Abhyuday Yojana (PM-AJAY)',
-  'Deen Dayal Upadhyaya Grameen Kaushalya Yojana (DDU-GKY)',
-  'Pradhan Mantri Awas Yojana (PMAY-Urban)',
-  'National Rural Livelihood Mission (NRLM)',
+  'National Skill Development Program (PMKVY 4.0)',
+  'National Digital Health Mission (ABDM)',
+  'National Rural Drinking Water Mission (JJM)',
+  'Special Central Assistance for Welfare Development (PM-AJAY)',
+  'National Rural Youth Livelihoods & Skilling Scheme (DDU-GKY)',
+  'National Urban Housing Mission (PMAY-Urban)',
+  'National Rural Livelihoods Mission (NRLM)',
 ];
 
 const CITY_COORDINATES: Record<string, [number, number]> = {

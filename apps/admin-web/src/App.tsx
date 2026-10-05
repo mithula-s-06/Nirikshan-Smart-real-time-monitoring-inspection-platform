@@ -1365,7 +1365,7 @@ export function App() {
                       {[
                         { actor: 'Dr. Rajesh Verma (Joint Secretary)', action: 'REVIEW_ANOMALY', target: 'INSP-2026-PUN-001', time: '10 mins ago', ip: '10.24.18.2' },
                         { actor: 'Automated Anomaly Engine', action: 'FLAG_BURST', target: 'St. Jude Hostel', time: '25 mins ago', ip: '127.0.0.1' },
-                        { actor: 'Amitabh Sharma (Field Inspector)', action: 'GPS_CHECK_IN', target: 'Hinjawadi Kendra', time: '1 hour ago', ip: '192.168.1.45' },
+                        { actor: 'Amitabh Sharma (Field Inspector)', action: 'GPS_CHECK_IN', target: 'Hinjawadi Center', time: '1 hour ago', ip: '192.168.1.45' },
                         { actor: 'National System Super Admin', action: 'SYSTEM_LOGIN', target: 'Central Session', time: '2 hours ago', ip: '10.24.18.1' },
                       ].map((log, idx) => (
                         <div key={idx} className="py-3 flex items-center justify-between">
